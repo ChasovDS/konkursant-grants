@@ -85,7 +85,7 @@ async def get_user_profile(
     raise HTTPException(status_code=400, detail="Укажите либо «details», либо «abbreviated» параметр")
 
 # Эндпоинт для обновления данных пользователя
-@router.patch("/users/{user_id}/profile", response_model=dict)
+@router.put("/users/{user_id}/profile", response_model=dict)
 async def update_user_profile(user_id: str, user_data: DataUserUpdate, token: dict = Depends(decode_jwt)):
     """
     Обновление информации о пользователе.

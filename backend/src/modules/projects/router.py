@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends, Response, UploadFile, Fil
 from pydantic import ValidationError
 from src.modules.auth.utils import create_jwt, decode_jwt
 from src.utils import check_permissions
-from src.modules.projects.utils import save_upload_file, convert_project_to_summary, save_upload_file, get_input_file
+from src.modules.projects.utils import convert_project_to_summary, save_upload_file, create_empty_project, create_project_from_file
 from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime
@@ -29,15 +29,12 @@ from src.modules.projects.schemas import (
 
 # Импортируем данные проекта
 from src.modules.projects.project_data import tab_calendar_plan, expenses, cofinancing
-from src.modules.projects.projects import create_empty_project, create_project_from_file
 from src.database import projects_data_collection
 
 router = APIRouter()
 
 SERVICE_NAME = "projects_service"
 
-
-# Функция для проверки, нужен ли файл
 
 
 # Эндпоинт для создания проекта
@@ -49,26 +46,36 @@ async def create_project(
     # Проверяем права доступа
     await check_permissions(token)
 
+    # Создаем новый проект
     new_project = await create_empty_project(token, project_template)
+
+    # Проверка на наличие необходимых полей в new_project
+    required_fields = ['project_name', 'author_id', 'author_name', 'project_template']
+    for field in required_fields:
+        if field not in new_project:
+            logger.error(f"Отсутствует обязательное поле: {field}")
+            raise HTTPException(status_code=400, detail=f"Отсутствует обязательное поле: {field}")
 
     # Вставляем проект в коллекцию базы данных
     try:
         result = await projects_data_collection.insert_one(new_project)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка при сохранении проекта: {e}")
+        logger.exception("Ошибка при сохранении проекта")
+        raise HTTPException(status_code=500, detail="Ошибка при сохранении проекта")
 
     # Получаем созданный проект из базы данных
     created_project = await projects_data_collection.find_one({"_id": result.inserted_id})
 
     if not created_project:
+        logger.error("Созданный проект не найден в базе данных")
         raise HTTPException(status_code=404, detail="Созданный проект не найден")
 
     # Преобразуем MongoDB документ в Pydantic модель
     try:
-        return convert_project_to_summary(created_project)
+        return await convert_project_to_summary(created_project)
     except ValidationError as ve:
+        logger.exception("Ошибка валидации данных")
         raise HTTPException(status_code=422, detail=f"Ошибка валидации данных: {ve}")
-
 
 
 @router.post("/projects/create-from-file", response_model=ProjectFICPersonSummary, status_code=status.HTTP_201_CREATED)

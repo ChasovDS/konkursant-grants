@@ -1,0 +1,474 @@
+[{
+  "_id": {
+    "$oid": "671113a4d9fc4905912f4f44"
+  },
+  "create_date": {
+    "$date": "2024-10-17T13:39:48.963Z"
+  },
+  "update_date": {
+    "$date": "2024-10-17T13:43:10.626Z"
+  },
+  "author_id": "670fb5e66d87728d8efd037f",
+  "author_name": "Иван Иванов",
+  "project_name": "Эко-инициатива",
+  "project_template": "Тестовый проект",
+  "region": "Москва",
+  "logo": "https://example.com/logo.png",
+  "contacts": {
+    "phone": "+7 (495) 123-45-67",
+    "email": "ivan.ivanov@example.com"
+  },
+  "project_data_tabs": {
+    "tab_general_info": {
+      "project_scale": "Национальный",
+      "project_duration": "12 месяцев",
+      "author_experience": "5 лет в экологии",
+      "author_functionality": "Разработка и реализация экологических проектов",
+      "author_registration_address": "г. Москва, ул. Примерная, д. 1",
+      "resume": "Опыт работы в экологии и устойчивом развитии.",
+      "video_link": "https://example.com/video"
+    },
+    "tab_project_info": {
+      "brief_info": "Проект направлен на снижение уровня загрязнения в городах.",
+      "problem_description": "Высокий уровень загрязнения воздуха и отсутствие эффективных инициатив.",
+      "target_groups": "Жители городов, местные власти, экологи.",
+      "main_goal": "Снижение загрязнения воздуха на 20% в течение года.",
+      "successful_experience": "Реализация аналогичного проекта в Санкт-Петербурге.",
+      "development_perspective": "Расширение на другие города и регионы.",
+      "tasks": [
+        "Организация очистки парков",
+        "Проведение образовательных мероприятий"
+      ],
+      "geography": [
+        "Москва",
+        "Санкт-Петербург"
+      ]
+    },
+    "tab_team": [
+      {
+        "teammate_id": "1",
+        "mentor_name": "Анна Смирнова",
+        "mentor_email": "anna.smirnova@example.com",
+        "role": "Координатор проекта",
+        "competencies": "Управление проектами, экология",
+        "resume": "Опыт в управлении экологическими инициативами."
+      }
+    ],
+    "tab_results": {
+      "planned_date": {
+        "$date": "2024-10-17T13:42:18.494Z"
+      },
+      "planned_events_count": 10,
+      "participants_count": 100,
+      "publications_count": 5,
+      "views_count": 1000,
+      "social_effect": "Повышение осведомленности о проблемах экологии."
+    },
+    "tab_calendar_plan": {
+      "tasks": [
+        {
+          "task_id": "task_1",
+          "task_name": "Очистка парка",
+          "events": [
+            {
+              "event_id": "event_1",
+              "title": "Очистка парка имени Горького",
+              "due_date": {
+                "$date": "2024-11-01T10:00:00.000Z"
+              },
+              "description": "Сбор мусора и посадка деревьев.",
+              "unique_participants": 50,
+              "recurring_participants": 20,
+              "publications_count": 1,
+              "views_count": 200,
+              "additional_info": "Необходимы перчатки и мешки для мусора."
+            }
+          ]
+        }
+      ]
+    },
+    "tab_media": [
+      {
+        "media_resource_id": "media_1",
+        "resource_type": "Статья",
+        "publication_month": "Ноябрь 2024",
+        "planned_views": 500,
+        "resource_links": [
+          "https://example.com/article"
+        ],
+        "reason_for_format": "Информирование общественности"
+      }
+    ],
+    "tab_expenses": {
+      "total_expense": "100000",
+      "categories": [
+        {
+          "expense_category_id": "cat_1",
+          "name": "Материалы",
+          "records": [
+            {
+              "title": "Перчатки",
+              "description": "Перчатки для участников",
+              "expense_record_id": "rec_1",
+              "type": "Закупка",
+              "identifier": "item_1",
+              "quantity": 100,
+              "price": "100",
+              "total": "10000"
+            }
+          ]
+        }
+      ]
+    },
+    "tab_cofinancing": {
+      "own_funds": [
+        {
+          "expense_own_id": "own_1",
+          "expense_description": "Собственные средства на материалы",
+          "amount": 50000,
+          "file_link": "https://example.com/own_funds"
+        }
+      ],
+      "partner_funds": [
+        {
+          "expense_partner_id": "partner_1",
+          "partner_name": "Фонд экологии",
+          "support_type": "Грант",
+          "expense_description": "Грант на реализацию проекта",
+          "amount": 50000,
+          "file_link": "https://example.com/partner_funds"
+        }
+      ]
+    },
+    "tab_additional_files": [
+      {
+        "files_id": "file_1",
+        "file_description": "План проекта",
+        "file_url": "https://example.com/project_plan.pdf"
+      }
+    ]
+  },
+  "reviews": [
+    {
+      "review_id": "67112ef23b618382f47d3852",
+      "expert_id": "670fb5e66d87728d8efd037f",
+      "score": 3
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "671248de9492602b473ce42f"
+  },
+  "create_date": {
+    "$date": "2024-10-18T11:39:10.108Z"
+  },
+  "update_date": {
+    "$date": "2024-10-18T11:39:10.108Z"
+  },
+  "author_id": "670fb5e66d87728d8efd037f",
+  "author_name": null,
+  "project_name": "Новый проект 2024-10-18T11:39:10.108771",
+  "project_template": "ФИЗ_ЛИЦО",
+  "region": null,
+  "logo": null,
+  "contacts": {
+    "phone": null,
+    "email": null
+  },
+  "project_data_tabs": {
+    "tab_general_info": {
+      "project_scale": null,
+      "project_duration": null,
+      "author_experience": null,
+      "author_functionality": null,
+      "author_registration_address": null,
+      "resume": null,
+      "video_link": null
+    },
+    "tab_project_info": {
+      "brief_info": null,
+      "problem_description": null,
+      "target_groups": null,
+      "main_goal": null,
+      "successful_experience": null,
+      "development_perspective": null,
+      "tasks": null,
+      "geography": null
+    },
+    "tab_team": [
+      {
+        "teammate_id": "temporary_plug_id",
+        "mentor_name": null,
+        "mentor_email": null,
+        "role": null,
+        "competencies": null,
+        "resume": null
+      }
+    ],
+    "tab_results": {
+      "planned_date": null,
+      "planned_events_count": null,
+      "participants_count": null,
+      "publications_count": null,
+      "views_count": null,
+      "social_effect": null
+    },
+    "tab_calendar_plan": {
+      "tasks": [
+        {
+          "task_id": "temporary_plug_id",
+          "task_name": "Задача 1",
+          "events": [
+            {
+              "event_id": "temporary_plug_id",
+              "title": null,
+              "due_date": null,
+              "description": null,
+              "unique_participants": null,
+              "recurring_participants": null,
+              "publications_count": null,
+              "views_count": null,
+              "additional_info": null
+            }
+          ]
+        }
+      ]
+    },
+    "tab_media": [
+      {
+        "media_resource_id": "temporary_plug_id",
+        "resource_type": null,
+        "publication_month": null,
+        "planned_views": null,
+        "resource_links": null,
+        "reason_for_format": null
+      }
+    ],
+    "tab_expenses": {
+      "total_expense": null,
+      "categories": [
+        {
+          "expense_category_id": "1",
+          "name": "Расходы на связь",
+          "records": [
+            {
+              "title": null,
+              "description": null,
+              "expense_record_id": "temporary_plug_id",
+              "type": null,
+              "identifier": null,
+              "quantity": null,
+              "price": null,
+              "total": null
+            }
+          ]
+        },
+        {
+          "expense_category_id": "2",
+          "name": "Канцелярия и расходные материалы",
+          "records": [
+            {
+              "title": null,
+              "description": null,
+              "expense_record_id": "temporary_plug_id",
+              "type": null,
+              "identifier": null,
+              "quantity": null,
+              "price": null,
+              "total": null
+            }
+          ]
+        },
+        {
+          "expense_category_id": "3",
+          "name": "Полиграфическая продукция",
+          "records": [
+            {
+              "title": null,
+              "description": null,
+              "expense_record_id": "temporary_plug_id",
+              "type": null,
+              "identifier": null,
+              "quantity": null,
+              "price": null,
+              "total": null
+            }
+          ]
+        },
+        {
+          "expense_category_id": "4",
+          "name": "Подарки, сувенирная продукция",
+          "records": [
+            {
+              "title": null,
+              "description": null,
+              "expense_record_id": "temporary_plug_id",
+              "type": null,
+              "identifier": null,
+              "quantity": null,
+              "price": null,
+              "total": null
+            }
+          ]
+        },
+        {
+          "expense_category_id": "5",
+          "name": "Проживание и питание",
+          "records": [
+            {
+              "title": null,
+              "description": null,
+              "expense_record_id": "temporary_plug_id",
+              "type": null,
+              "identifier": null,
+              "quantity": null,
+              "price": null,
+              "total": null
+            }
+          ]
+        },
+        {
+          "expense_category_id": "6",
+          "name": "Транспортные расходы",
+          "records": [
+            {
+              "title": null,
+              "description": null,
+              "expense_record_id": "temporary_plug_id",
+              "type": null,
+              "identifier": null,
+              "quantity": null,
+              "price": null,
+              "total": null
+            }
+          ]
+        },
+        {
+          "expense_category_id": "7",
+          "name": "Аренда помещений",
+          "records": [
+            {
+              "title": null,
+              "description": null,
+              "expense_record_id": "temporary_plug_id",
+              "type": null,
+              "identifier": null,
+              "quantity": null,
+              "price": null,
+              "total": null
+            }
+          ]
+        },
+        {
+          "expense_category_id": "8",
+          "name": "Аренда оборудования",
+          "records": [
+            {
+              "title": null,
+              "description": null,
+              "expense_record_id": "temporary_plug_id",
+              "type": null,
+              "identifier": null,
+              "quantity": null,
+              "price": null,
+              "total": null
+            }
+          ]
+        },
+        {
+          "expense_category_id": "9",
+          "name": "Информационные услуги",
+          "records": [
+            {
+              "title": null,
+              "description": null,
+              "expense_record_id": "temporary_plug_id",
+              "type": null,
+              "identifier": null,
+              "quantity": null,
+              "price": null,
+              "total": null
+            }
+          ]
+        },
+        {
+          "expense_category_id": "10",
+          "name": "Закупка оборудования",
+          "records": [
+            {
+              "title": null,
+              "description": null,
+              "expense_record_id": "temporary_plug_id",
+              "type": null,
+              "identifier": null,
+              "quantity": null,
+              "price": null,
+              "total": null
+            }
+          ]
+        },
+        {
+          "expense_category_id": "11",
+          "name": "Дополнительные услуги и товары для проекта",
+          "records": [
+            {
+              "title": null,
+              "description": null,
+              "expense_record_id": "temporary_plug_id",
+              "type": null,
+              "identifier": null,
+              "quantity": null,
+              "price": null,
+              "total": null
+            }
+          ]
+        },
+        {
+          "expense_category_id": "12",
+          "name": "Расходы на ПО",
+          "records": [
+            {
+              "title": null,
+              "description": null,
+              "expense_record_id": "temporary_plug_id",
+              "type": null,
+              "identifier": null,
+              "quantity": null,
+              "price": null,
+              "total": null
+            }
+          ]
+        }
+      ]
+    },
+    "tab_cofinancing": {
+      "own_funds": [
+        {
+          "expense_own_id": "temporary_plug_id",
+          "expense_description": null,
+          "amount": null,
+          "file_link": null
+        }
+      ],
+      "partner_funds": [
+        {
+          "expense_partner_id": "temporary_plug_id",
+          "partner_name": null,
+          "support_type": null,
+          "expense_description": null,
+          "amount": null,
+          "file_link": null
+        }
+      ]
+    },
+    "tab_additional_files": [
+      {
+        "files_id": "temporary_plug_id",
+        "file_description": null,
+        "file_url": null
+      }
+    ]
+  },
+  "reviews": []
+}]

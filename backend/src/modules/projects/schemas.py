@@ -8,6 +8,7 @@ from enum import Enum
 # Определение Enum для шаблонов проектов
 class ProjectTemplate(str, Enum):
     FIZ_LITSO = "ФИЗ_ЛИЦО"
+
 class BaseRecord(BaseModel):
     title: Optional[str] = None  # Заголовок
     description: Optional[str] = None  # Описание
@@ -17,6 +18,11 @@ class ContactInfo(BaseModel):
     phone: Optional[str] = None  # Телефон
     email: Optional[EmailStr] = None  # E-mail
 
+
+class Resume(BaseModel):
+    resume_id: Optional[str] = None
+    resume_url: Optional[str] = None
+
 # Модель для общей информации
 class GeneralInfo(BaseModel):
     project_scale: Optional[str] = None  # Масштаб реализации проекта
@@ -24,7 +30,7 @@ class GeneralInfo(BaseModel):
     author_experience: Optional[str] = None  # Опыт автора проекта
     author_functionality: Optional[str] = None  # Описание функционала автора
     author_registration_address: Optional[str] = None  # Адрес регистрации автора
-    resume: Optional[str] = None  # Резюме
+    resume: Optional[Resume] = None  # Резюме
     video_link: Optional[str] = None  # Ссылка на видео-визитку
 
 # Модель для информации о проекте
@@ -107,11 +113,16 @@ class Expense(BaseModel):
     total_expense: Optional[str] = None  # Общая сумма расходов
     categories: Optional[List[ExpenseCategory]] = None  # Список категорий расходов
 
-class OwnFunds(BaseModel):
+class ExpensesList(BaseModel):
     expense_own_id: Optional[str] = None  # Сделано опциональным
-    expense_description: Optional[str] = None  # Перечень расходов
     amount: Optional[float] = None  # Сумма, руб.
     file_link: Optional[str] = None  # Ссылка на файл
+
+
+class OwnFunds(BaseModel):
+    expenses_description: Optional[str] = None  # Сделано опциональным
+    expenses_list: Optional[ExpensesList] = None
+
 
 class PartnerFunds(BaseModel):
     expense_partner_id: Optional[str] = None  # Сделано опциональным

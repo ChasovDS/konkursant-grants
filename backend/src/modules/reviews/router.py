@@ -127,8 +127,6 @@ async def update_review(review_id: str, review: ReviewUpdate, token: dict = Depe
     """
     Обновление проверки по её ID.
     """
-    # Проверка прав доступа
-    # await check_permissions(token, required_permissions=["update_reviews"])
 
     # Шаг 1: Найти проверку по review_id
     await check_permissions(token, SERVICE_NAME, review_id=review_id)
