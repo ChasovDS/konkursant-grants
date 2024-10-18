@@ -96,7 +96,6 @@ class MediaResource(BaseModel):
 # Модель для записи расходов
 class ExpenseRecord(BaseRecord):
     expense_record_id: Optional[str] = None  # Сделано опциональным
-    type: Optional[str] = None  # Тип (товар/услуга)
     identifier: Optional[str] = None  # Идентификатор(имя) статьи расходов
     quantity: Optional[int] = None  # Количество
     price: Optional[str] = None  # Цена
@@ -106,6 +105,7 @@ class ExpenseRecord(BaseRecord):
 class ExpenseCategory(BaseModel):
     expense_category_id: Optional[str] = None  # Сделано опциональным
     name: Optional[str] = None  # Название категории
+    type: Optional[str] = None  # Тип (товар/услуга)
     records: Optional[List[ExpenseRecord]] = None  # Записи расходов в категории
 
 # Обновленная модель для блока расходов

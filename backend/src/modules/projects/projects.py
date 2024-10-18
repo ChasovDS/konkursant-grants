@@ -85,10 +85,7 @@ class DataExtractor:
                 "tab_results": "",
                 "tab_calendar_plan": "",
                 "tab_media": "",
-                "tab_expenses": {
-                    "total_expense": "",
-                    "categories": []
-                },
+                "tab_expenses":"",
                 "tab_cofinancing": "",
                 "tab_additional_files": ""
             }
@@ -121,6 +118,7 @@ class DataExtractor:
             self.data["project_data_tabs"]["tab_media"] = self.result_media(lines)
             self.data["project_data_tabs"]["tab_cofinancing"] = self.result_cofinancing(lines)
             self.data["project_data_tabs"]["tab_additional_files"] = self.result_additional_files(lines)
+            self.data["project_data_tabs"]["tab_expenses"] = self.result_expenses(lines)
 
 
             logging.info("Данные успешно извлечены из TXT файла.")
@@ -535,6 +533,110 @@ class DataExtractor:
 
         return result_extraction  # Возвращаем список с информацией о файлах
 
+
+    def result_expenses(self, lines: List[str]) -> Dict[str, Any]:
+        result_extraction = {
+            "total_expense": None,
+            "categories": []
+        }
+
+        # Словарь для соответствия категорий и их ID
+        category_ids = {
+            "Сайт / приложение": "1",
+            "Расходы на связь": "2",
+            "Канцелярия и расходные материалы": "3",
+            "Полиграфическая продукция": "4",
+            "Подарки, сувенирная продукция": "5",
+            "Проживание и питание": "6",
+            "Транспортные расходы": "7",
+            "Аренда помещений": "8",
+            "Аренда оборудования": "9",
+            "Информационные услуги": "10",
+            "Закупка оборудования": "11",
+            "Дополнительные услуги и товары для проекта": "12",
+            "Расходы на ПО": "13",
+        }
+
+        # Инициализация категорий
+        for category_name, category_id in category_ids.items():
+            result_extraction["categories"].append({
+                "expense_category_id": category_id,
+                "name": category_name,
+                "records": []  # Изначально пустой список записей
+            })
+
+        combined_lines = extract_between_headers(lines, ['Вкладка "Расходы"'], 'Вкладка "Софинансирование"')
+
+        # Извлечение общей суммы расходов
+        total_expense = extract_between_headers(lines, ['Общая сумма расходов:'], 'Категория')
+        result_extraction["total_expense"] = total_expense
+
+        # Обработка строк с категориями и записями
+        current_category = None
+        value_type = None
+
+        for i, line in enumerate(combined_lines):
+            line = line.strip()
+
+            # Обработка категории расходов
+            category_match = re.match(r'Категория "(.*)"', line)
+            if category_match:
+                category_name = category_match.group(1)
+                # Поиск текущей категории в результатах
+                current_category = next((cat for cat in result_extraction["categories"] if cat["name"] == category_name), None)
+                continue
+
+            # Обработка типа расходов
+            type_match = re.match(r'Тип "(.*)"', line)
+            if type_match and current_category:
+                value_type = type_match.group(1)
+                continue
+
+            # Обработка записей расходов
+            record_match = re.match(r'Запись № \d+', line)
+            if record_match and current_category is not None:
+                record = {
+                    "expense_record_id": str(uuid.uuid4()),  # Уникальный ID для каждой записи
+                    "type": value_type,
+                    "title": None,
+                    "description": None,
+                    "quantity": None,
+                    "price": None,
+                    "total": None
+                }
+
+                for j in range(1, 6):
+                    if i + j < len(combined_lines):
+                        next_line = combined_lines[i + j].strip()
+                        if next_line.startswith("Название:"):
+                            record["title"] = next_line.replace("Название:", "").strip()
+                        elif next_line.startswith("Описание:"):
+                            record["description"] = next_line.replace("Описание:", "").strip()
+                        elif next_line.startswith("Количество:"):
+                            record["quantity"] = next_line.replace("Количество:", "").strip()
+                        elif next_line.startswith("Цена:"):
+                            record["price"] = next_line.replace("Цена:", "").strip()
+                        elif next_line.startswith("Сумма:"):
+                            record["total"] = next_line.replace("Сумма:", "").strip()
+
+                current_category["records"].append(record)
+
+        # Добавляем пустую запись только для категорий, где нет расходов
+        for category in result_extraction["categories"]:
+            if not category["records"]:  # Если записи пустые
+                empty_record = {
+                    "title": None,
+                    "description": None,
+                    "expense_record_id": str(uuid.uuid4()),  # Уникальный ID для каждой пустой записи
+                    "type": None,
+                    "identifier": None,
+                    "quantity": None,
+                    "price": None,
+                    "total": None
+                }
+                category["records"].append(empty_record)
+
+        return result_extraction
 class JSONWriter:
     @staticmethod
     async def write_to_json(data: Dict[str, Any], json_filepath: str):

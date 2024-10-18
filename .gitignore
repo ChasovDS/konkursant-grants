@@ -7,6 +7,9 @@ __pycache__/
 # JSON и текстовые файлы, если они не нужны в репозитории
 *.docs
 *.docx
+*.json
+*.JSON
+*.txt
 
 # Node.js
 /node_modules/
