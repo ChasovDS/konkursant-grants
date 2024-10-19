@@ -215,7 +215,6 @@ class DataExtractor:
 
     def result_extraction(self, lines):
         result_extraction = {
-            "tab_results": {
                 "planned_date": "",
                 "planned_events_count": "",
                 "final_date": "",
@@ -223,7 +222,6 @@ class DataExtractor:
                 "publications_count": "",
                 "views_count": "",
                 "social_effect": ""
-            }
         }
 
         combined_lines = extract_between_headers(lines, ['Вкладка "Результаты"'], 'Вкладка "Календарный план"')
@@ -232,16 +230,16 @@ class DataExtractor:
         numbers_only = extract_numbers(combined_lines)
 
         # Присвоение значений в словарь результата
-        result_extraction["tab_results"]["planned_date"] = numbers_only[0] if len(numbers_only) > 0 else "Нет данных"
-        result_extraction["tab_results"]["planned_events_count"] = numbers_only[1] if len(numbers_only) > 1 else "Нет данных"
-        result_extraction["tab_results"]["final_date"] = numbers_only[2] if len(numbers_only) > 2 else "Нет данных"
-        result_extraction["tab_results"]["participants_count"] = numbers_only[3] if len(numbers_only) > 3 else "Нет данных"
-        result_extraction["tab_results"]["publications_count"] = numbers_only[4] if len(numbers_only) > 4 else "Нет данных"
-        result_extraction["tab_results"]["views_count"] = numbers_only[5] if len(numbers_only) > 5 else "Нет данных"
+        result_extraction["planned_date"] = numbers_only[0] if len(numbers_only) > 0 else "Нет данных"
+        result_extraction["planned_events_count"] = numbers_only[1] if len(numbers_only) > 1 else "Нет данных"
+        result_extraction["final_date"] = numbers_only[2] if len(numbers_only) > 2 else "Нет данных"
+        result_extraction["participants_count"] = numbers_only[3] if len(numbers_only) > 3 else "Нет данных"
+        result_extraction["publications_count"] = numbers_only[4] if len(numbers_only) > 4 else "Нет данных"
+        result_extraction["views_count"] = numbers_only[5] if len(numbers_only) > 5 else "Нет данных"
 
         # Извлечение социального эффекта
         social_effect = extract_between_headers(combined_lines, ['Социальный эффект:'], 'Вкладка "Календарный план"')
-        result_extraction["tab_results"]["social_effect"] = social_effect if social_effect else "Нет данных"
+        result_extraction["social_effect"] = social_effect if social_effect else "Нет данных"
 
         return result_extraction
 
@@ -569,7 +567,9 @@ class DataExtractor:
 
         # Извлечение общей суммы расходов
         total_expense = extract_between_headers(lines, ['Общая сумма расходов:'], 'Категория')
-        result_extraction["total_expense"] = total_expense
+
+        # Записываем только первые 2 строки
+        result_extraction["total_expense"] = total_expense[:1]
 
         # Обработка строк с категориями и записями
         current_category = None

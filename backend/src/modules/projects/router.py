@@ -87,7 +87,6 @@ async def create_project(
     # Проверяем права доступа
     await check_permissions(token)
 
-
     # Создание проекта из файла
     file_path = await save_upload_file(input_file)
 
@@ -108,7 +107,7 @@ async def create_project(
 
     # Преобразуем MongoDB документ в Pydantic модель
     try:
-        return convert_project_to_summary(created_project)
+        return await convert_project_to_summary(created_project)  # Здесь добавлено 'await'
     except ValidationError as ve:
         raise HTTPException(status_code=422, detail=f"Ошибка валидации данных: {ve}")
 
@@ -148,7 +147,7 @@ async def get_projects(
 
     # Получаем проекты из базы данных с пагинацией
     projects_cursor = projects_data_collection.find(query).skip(skip).limit(limit)
-    projects = [ convert_project_to_summary(project) async for project in projects_cursor]
+    projects = [await convert_project_to_summary(project) async for project in projects_cursor]
 
     return projects
 

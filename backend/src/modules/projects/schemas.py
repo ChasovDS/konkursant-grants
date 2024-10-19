@@ -1,7 +1,10 @@
 from pydantic import BaseModel, EmailStr
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 from enum import Enum
+from pydantic import root_validator
+from pydantic import validator
+
 # Базовая модель для общих полей
 
 
@@ -33,6 +36,10 @@ class GeneralInfo(BaseModel):
     resume: Optional[Resume] = None  # Резюме
     video_link: Optional[str] = None  # Ссылка на видео-визитку
 
+
+class Geography(BaseModel):
+    region: Optional[str] = None  # Регион, может быть пустым
+    address: Optional[str] = None
 # Модель для информации о проекте
 class ProjectInfo(BaseModel):
     brief_info: Optional[str] = None  # Краткая информация о проекте
@@ -42,31 +49,32 @@ class ProjectInfo(BaseModel):
     successful_experience: Optional[str] = None  # Опыт успешной реализации
     development_perspective: Optional[str] = None  # Перспектива развития
     tasks: Optional[List[str]] = None  # Задачи проекта
-    geography: Optional[List[str]] = None  # География проекта
+    geography: Optional[List[Geography]] = None
 
 # Модель для информации о команде
 class TeamMember(BaseModel):
     teammate_id: Optional[str] = None  # Сделано опциональным
     mentor_name: Optional[str] = None  # ФИО наставника
-    mentor_email: Optional[EmailStr] = None  # E-mail наставника
+    mentor_email: Optional[str] = None  # E-mail наставника
     role: Optional[str] = None  # Роль в проекте
     competencies: Optional[str] = None  # Компетенции и опыт
     resume: Optional[str] = None  # Резюме
 
 # Модель для результатов проекта
 class Results(BaseModel):
-    planned_date: Optional[datetime] = None  # Дата плановых значений
-    planned_events_count: Optional[int] = None  # Плановое количество мероприятий
-    participants_count: Optional[int] = None  # Количество участников
-    publications_count: Optional[int] = None  # Количество публикаций
-    views_count: Optional[int] = None  # Количество просмотров
-    social_effect: Optional[str] = None  # Социальный эффект
+    planned_date: Optional[str] = None  # Дата плановых значений
+    final_date: Optional[str] = None  # Добавлено
+    planned_events_count: Optional[str] = None  # Плановое количество мероприятий
+    participants_count: Optional[str] = None  # Количество участников
+    publications_count: Optional[str] = None  # Количество публикаций
+    views_count: Optional[str] = None  # Количество просмотров
+    social_effect: Optional[List[str]] = None  # Социальный эффект
 
 # Модель для мероприятия
 class Event(BaseModel):
     event_id: Optional[str] = None  # Сделано опциональным
     title: Optional[str] = None  # Название мероприятия
-    due_date: Optional[datetime] = None  # Крайняя дата
+    due_date: Optional[str] = None  # Крайняя дата
     description: Optional[str] = None  # Описание
     unique_participants: Optional[int] = None  # Количество уникальных участников
     recurring_participants: Optional[int] = None  # Количество повторяющихся участников
@@ -89,7 +97,7 @@ class MediaResource(BaseModel):
     media_resource_id: Optional[str] = None  # Сделано опциональным
     resource_type: Optional[str] = None  # Вид ресурса
     publication_month: Optional[str] = None  # Месяц публикации
-    planned_views: Optional[int] = None  # Планируемое количество просмотров
+    planned_views: Optional[str] = None   # Планируемое количество просмотров
     resource_links: Optional[List[str]] = None  # Ссылки на ресурсы
     reason_for_format: Optional[str] = None  # Почему выбран такой формат медиа
 
@@ -97,6 +105,7 @@ class MediaResource(BaseModel):
 class ExpenseRecord(BaseRecord):
     expense_record_id: Optional[str] = None  # Сделано опциональным
     identifier: Optional[str] = None  # Идентификатор(имя) статьи расходов
+    type: Optional[str] = None  # Тип (товар/услуга)
     quantity: Optional[int] = None  # Количество
     price: Optional[str] = None  # Цена
     total: Optional[str] = None  # Сумма
@@ -105,12 +114,11 @@ class ExpenseRecord(BaseRecord):
 class ExpenseCategory(BaseModel):
     expense_category_id: Optional[str] = None  # Сделано опциональным
     name: Optional[str] = None  # Название категории
-    type: Optional[str] = None  # Тип (товар/услуга)
     records: Optional[List[ExpenseRecord]] = None  # Записи расходов в категории
 
 # Обновленная модель для блока расходов
 class Expense(BaseModel):
-    total_expense: Optional[str] = None  # Общая сумма расходов
+    total_expense: Optional[List] = None  # Общая сумма расходов
     categories: Optional[List[ExpenseCategory]] = None  # Список категорий расходов
 
 class ExpensesList(BaseModel):
@@ -121,7 +129,7 @@ class ExpensesList(BaseModel):
 
 class OwnFunds(BaseModel):
     expenses_description: Optional[str] = None  # Сделано опциональным
-    expenses_list: Optional[ExpensesList] = None
+    expenses_list: Optional[List[ExpensesList]] = None
 
 
 class PartnerFunds(BaseModel):
@@ -136,6 +144,20 @@ class PartnerFunds(BaseModel):
 class Cofinancing(BaseModel):
     own_funds: Optional[List[OwnFunds]] = None  # Перечень расходов собственных средств
     partner_funds: Optional[List[PartnerFunds]] = None  # Перечень расходов от партнеров
+
+    @validator('own_funds', pre=True)
+    def validate_own_funds(cls, value):
+        if isinstance(value, dict):
+            return [OwnFunds(**value)]
+        return value
+
+    @validator('partner_funds', pre=True)
+    def validate_partner_funds(cls, value):
+        if isinstance(value, dict):
+            return [PartnerFunds(**value)]
+        return value
+
+
 
 # Модель для блока дополнительных файлов
 class AdditionalFiles(BaseModel):
@@ -167,7 +189,7 @@ class ProjectFICPerson(BaseModel):
     author_id: Optional[str] = None  # ID автора
     author_name: Optional[str] = None  # ФИО автора
     project_name: Optional[str] = None  # Название проекта
-    project_template: Optional[str] = None  # Шаблон проекта
+    project_template: Optional[ProjectTemplate] = None  # Шаблон проекта
     region: Optional[str] = None  # Регион проекта
     logo: Optional[str] = None  # Логотип проекта
     contacts: Optional[ContactInfo] = None  # Контакты
@@ -206,3 +228,11 @@ class SectionsToUpdate(BaseModel):
     tab_expenses: Optional[bool] = False  # Вкладка "Расходы"
     tab_cofinancing: Optional[bool] = False  # Вкладка "Софинансирование"
     tab_additional_files: Optional[bool] = False  # Вкладка "Доп. Файлы"
+
+
+class ProjectData(BaseModel):
+    author_name: str
+    project_name: str
+    region: str
+    contacts: ContactInfo
+    project_data_tabs: Dict[str, Any]

@@ -60,11 +60,20 @@ async def check_permissions(token: Dict, SERVICE_NAME: Optional[str] = None, ope
     }
 
     if SERVICE_NAME:
+        # Попытка получить функцию сервиса из словаря
         service_function = services.get(SERVICE_NAME)
 
         if service_function:
-            return await service_function(token, user_id, project_id, event_id, review_id)
+            # Вызов функции сервиса с учетом необязательных параметров
+            return await service_function(
+                token=token,
+                user_id=user_id,
+                project_id=project_id,
+                event_id=event_id,
+                review_id=review_id
+            )
         else:
+            # Логирование ошибки, если сервис не найден
             logger.error("Неизвестный сервис: %s", SERVICE_NAME)
             return None
 
