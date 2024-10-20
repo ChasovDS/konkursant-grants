@@ -14,22 +14,11 @@ client = AsyncIOMotorClient("mongodb://localhost:27017")
 user_accounts_db = client["user_accounts_db"]
 
 # Создаем коллекции для различных типов учетных записей
-#yandex_accounts_collection = user_accounts_db["yandex_accounts"]
-
-#vk_accounts_collection = user_accounts_db["vk_accounts"]
-
-#email_accounts_collection = user_accounts_db["email_accounts"]
-
-# Создаем коллекцию для хранения учетных записей пользователей
-
-#user_accounts_collection = user_accounts_db["user_accounts"]
 
 authorization_accounts_collection = user_accounts_db["authorization_accounts"]
 
 # Создаем коллекцию для хранения ролей пользователей
 user_roles_collection = user_accounts_db["user_roles"]
-
-endpoint_permissions_collection = user_accounts_db["endpoint_permissions"]
 
 # Создаем коллекцию для хранения сессий пользователей
 user_sessions_collection = user_accounts_db["session"]

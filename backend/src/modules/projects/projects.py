@@ -5,6 +5,7 @@ import logging
 from docx import Document
 from typing import List, Dict, Any
 import asyncio
+import aiofiles
 import uuid
 
 # Настройка логирования
@@ -18,51 +19,42 @@ class DocxConverter:
     async def convert_to_txt(self):
         try:
             document = Document(self.docx_filepath)
-            with open(self.txt_filepath, 'w', encoding='utf-8') as txt_file:
+            async with aiofiles.open(self.txt_filepath, 'w', encoding='utf-8') as txt_file:
                 for paragraph in document.paragraphs:
-                    txt_file.write(paragraph.text + '\n')
+                    await txt_file.write(paragraph.text + '\n')
             logging.info(f"Файл '{self.txt_filepath}' успешно создан.")
         except Exception as e:
             logging.error(f"Ошибка при конвертации DOCX в TXT: {e}")
             raise
 
+    async def check_structure(self):
+        required_phrases = [
+            "Вкладка \"Общее\"",
+            "Вкладка \"О проекте\"",
+            "Вкладка \"Команда\"",
+            "Вкладка \"Результаты\"",
+            "Вкладка \"Календарный план\"",
+            "Вкладка \"Медиа\"",
+            "Вкладка \"Расходы\"",
+            "Вкладка \"Софинансирование\"",
+            "Вкладка \"Доп. Файлы\""
+        ]
 
-def extract_numbers(data):
-    results = []
+        try:
+            # Асинхронное чтение файла
+            async with aiofiles.open(self.txt_filepath, 'r', encoding='utf-8') as txt_file:
+                content = await txt_file.read()
 
-    for text in data:
-        # Найти все числа и даты в каждой строке
-        found_items = re.findall(r'\d{1,2}\.\d{1,2}\.\d{4}|\d+', text)
-        # Добавить найденные предметы в общий список
-        results.extend(found_items)
+            # Проверка наличия необходимых фраз
+            for phrase in required_phrases:
+                if phrase not in content:
+                    raise ValueError(f"Ошибка: '{phrase}' не обнаружена в файле.")
 
-    return results
+            logging.info("Структура файла корректна.")
+        except Exception as e:
+            logging.error(f"Ошибка при проверке структуры файла: {e}")
+            raise
 
-def extract_between_headers(lines: List[str], start_headers: List[str], end_header: str = None) -> List[str]:
-    is_collecting = False
-    collected_lines = []
-
-    # Преобразуем заголовки в регулярные выражения для гибкости
-    start_patterns = [re.escape(header) + r'\s*' for header in start_headers]
-    end_pattern = re.escape(end_header) + r'\s*' if end_header else None
-
-    for line in lines:
-        # Проверяем, начинается ли строка с одного из заголовков
-        if any(re.match(pattern, line) for pattern in start_patterns):
-            is_collecting = True
-            logging.info(f"Начато собирание строк после заголовка: {line.strip()}")
-            continue
-
-        # Проверяем, заканчивается ли сбор данных на заголовке
-        if end_pattern and re.match(end_pattern, line):
-            logging.info(f"Сбор строк остановлен на заголовке: {line.strip()}")
-            break
-
-        # Если мы находимся в режиме сбора, добавляем строки без изменения
-        if is_collecting:
-            collected_lines.append(line)  # Добавляем текущую строку в исходном виде
-
-    return collected_lines
 class DataExtractor:
     def __init__(self, txt_filepath: str):
         self.txt_filepath = txt_filepath
@@ -91,10 +83,11 @@ class DataExtractor:
             }
         }
 
-    def extract_data(self) -> Dict[str, Any]:
+    async def extract_data(self) -> Dict[str, Any]:
         try:
-            with open(self.txt_filepath, 'r', encoding='utf-8') as file:
-                lines = file.readlines()
+            # Асинхронное чтение файла
+            async with aiofiles.open(self.txt_filepath, 'r', encoding='utf-8') as file:
+                lines = await file.readlines()
 
             for line in lines:
                 if "ФИО:" in line:
@@ -110,6 +103,7 @@ class DataExtractor:
                     if len(contacts) > 1:
                         self.data["contacts"]["email"] = contacts[1]
 
+            # Вызов методов для извлечения данных
             self.data["project_data_tabs"]["tab_general_info"] = self.result_general_info(lines)
             self.data["project_data_tabs"]["tab_project_info"] = self.result_project_info(lines)
             self.data["project_data_tabs"]["tab_team"] = self.result_team_members(lines)
@@ -119,7 +113,6 @@ class DataExtractor:
             self.data["project_data_tabs"]["tab_cofinancing"] = self.result_cofinancing(lines)
             self.data["project_data_tabs"]["tab_additional_files"] = self.result_additional_files(lines)
             self.data["project_data_tabs"]["tab_expenses"] = self.result_expenses(lines)
-
 
             logging.info("Данные успешно извлечены из TXT файла.")
             return self.data
@@ -138,6 +131,8 @@ class DataExtractor:
             resume={"resume_id": str(uuid.uuid4()), "resume_url": ""},
             video_link=""
         )
+
+        lines = extract_between_headers(lines, ['Блок "Общая информация"'], 'Блок "Информация о проекте"')
 
         general_info["project_scale"] = ' '.join(extract_between_headers(
             lines, ["Масштаб реализации проекта:"], "Дата начала и окончания проекта:"
@@ -173,9 +168,11 @@ class DataExtractor:
             geography=[]  # Инициализируем как список
         )
 
+        lines = extract_between_headers(lines, ['Блок "Информация о проекте"'], 'Блок "География проекта"')
+
         # Извлечение информации по заголовкам
         project_info["brief_info"] = ' '.join(extract_between_headers(
-            lines, ["Краткая информация о проекте:"],"Описание проблемы, решению/снижению которой посвящен проект:"))
+            lines, ["Краткая информация о проекте:"], "Описание проблемы, решению/снижению которой посвящен проект:"))
 
         project_info["problem_description"] = ' '.join(extract_between_headers(
             lines, ["Описание проблемы, решению/снижению которой посвящен проект:"], "Основные целевые группы, на которые направлен проект:"))
@@ -212,16 +209,15 @@ class DataExtractor:
 
         return project_info
 
-
     def result_extraction(self, lines):
         result_extraction = {
-                "planned_date": "",
-                "planned_events_count": "",
-                "final_date": "",
-                "participants_count": "",
-                "publications_count": "",
-                "views_count": "",
-                "social_effect": ""
+            "planned_date": "",
+            "planned_events_count": "",
+            "final_date": "",
+            "participants_count": "",
+            "publications_count": "",
+            "views_count": "",
+            "social_effect": ""
         }
 
         combined_lines = extract_between_headers(lines, ['Вкладка "Результаты"'], 'Вкладка "Календарный план"')
@@ -229,17 +225,25 @@ class DataExtractor:
         # Удаление всех данных, оставляя только числа
         numbers_only = extract_numbers(combined_lines)
 
+        # Список ключей для присвоения значений
+        keys = [
+            "planned_date",
+            "planned_events_count",
+            "final_date",
+            "participants_count",
+            "publications_count",
+            "views_count"
+        ]
+
         # Присвоение значений в словарь результата
-        result_extraction["planned_date"] = numbers_only[0] if len(numbers_only) > 0 else "Нет данных"
-        result_extraction["planned_events_count"] = numbers_only[1] if len(numbers_only) > 1 else "Нет данных"
-        result_extraction["final_date"] = numbers_only[2] if len(numbers_only) > 2 else "Нет данных"
-        result_extraction["participants_count"] = numbers_only[3] if len(numbers_only) > 3 else "Нет данных"
-        result_extraction["publications_count"] = numbers_only[4] if len(numbers_only) > 4 else "Нет данных"
-        result_extraction["views_count"] = numbers_only[5] if len(numbers_only) > 5 else "Нет данных"
+        for i, key in enumerate(keys):
+            if i < len(numbers_only):
+                result_extraction[key] = numbers_only[i]
 
         # Извлечение социального эффекта
         social_effect = extract_between_headers(combined_lines, ['Социальный эффект:'], 'Вкладка "Календарный план"')
-        result_extraction["social_effect"] = social_effect if social_effect else "Нет данных"
+        if social_effect:
+            result_extraction["social_effect"] = social_effect
 
         return result_extraction
 
@@ -637,16 +641,60 @@ class DataExtractor:
                 category["records"].append(empty_record)
 
         return result_extraction
+
 class JSONWriter:
     @staticmethod
     async def write_to_json(data: Dict[str, Any], json_filepath: str):
         try:
-            with open(json_filepath, 'w', encoding='utf-8') as json_file:
-                json.dump(data, json_file, ensure_ascii=False, indent=4)
+            async with aiofiles.open(json_filepath, 'w', encoding='utf-8') as json_file:
+                await json_file.write(json.dumps(data, ensure_ascii=False, indent=4))
             logging.info(f"Данные успешно записаны в JSON файл '{json_filepath}'.")
-        except Exception as e:
-            logging.error(f"Ошибка при записи JSON файла '{json_filepath}': {e}")
+        except IOError as e:
+            logging.error(f"Ошибка ввода-вывода при записи JSON файла '{json_filepath}': {e}")
             raise
+        except TypeError as e:
+            logging.error(f"Невозможно сериализовать объект в JSON: {e}")
+            raise ValueError("Невозможно сериализовать объект в JSON.") from e
+
+
+def extract_numbers(data):
+    results = []
+
+    for text in data:
+        # Найти все числа и даты в каждой строке
+        found_items = re.findall(r'\d{1,2}\.\d{1,2}\.\d{4}|\d+', text)
+        # Добавить найденные предметы в общий список
+        results.extend(found_items)
+
+    return results
+
+def extract_between_headers(lines: List[str], start_headers: List[str], end_header: str = None) -> List[str]:
+    is_collecting = False
+    collected_lines = []
+
+    # Преобразуем заголовки в регулярные выражения для гибкости
+    start_patterns = [re.escape(header) + r'\s*' for header in start_headers]
+    end_pattern = re.escape(end_header) + r'\s*' if end_header else None
+
+    for line in lines:
+        # Проверяем, начинается ли строка с одного из заголовков
+        if any(re.match(pattern, line) for pattern in start_patterns):
+            is_collecting = True
+            logging.info(f"Начато собирание строк после заголовка: {line.strip()}")
+            continue
+
+        # Проверяем, заканчивается ли сбор данных на заголовке
+        if end_pattern and re.match(end_pattern, line):
+            logging.info(f"Сбор строк остановлен на заголовке: {line.strip()}")
+            break
+
+        # Если мы находимся в режиме сбора, добавляем строки без изменения
+        if is_collecting:
+            collected_lines.append(line)  # Добавляем текущую строку в исходном виде
+
+    return collected_lines
+
+
 
 async def convert_docx_to_json(docx_filepath: str):
     parent_folder = os.path.dirname(os.path.dirname(docx_filepath))
@@ -656,23 +704,26 @@ async def convert_docx_to_json(docx_filepath: str):
     txt_folder = os.path.join(parent_folder, "projects_txt")
     json_folder = os.path.join(parent_folder, "projects_json")
 
-    # Создаем папки, если их нет
     os.makedirs(txt_folder, exist_ok=True)
     os.makedirs(json_folder, exist_ok=True)
 
     txt_filepath = os.path.join(txt_folder, f"{file_name}.txt")
     json_filepath = os.path.join(json_folder, f"{file_name}.json")
 
+    # Создаем экземпляр конвертера
     converter = DocxConverter(docx_filepath, txt_filepath)
     await converter.convert_to_txt()
 
+    # Проверяем структуру файла
+    await converter.check_structure()
+
+    # Создаем экземпляр извлекателя данных
     extractor = DataExtractor(txt_filepath)
-    data = extractor.extract_data()
+    data = await extractor.extract_data()
 
     await JSONWriter.write_to_json(data, json_filepath)
 
     return json_filepath
-
 async def main():
     docx_filepath = "12.docx"
     await convert_docx_to_json(docx_filepath)
