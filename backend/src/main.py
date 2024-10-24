@@ -29,8 +29,9 @@ app.include_router(reviews_router, prefix="/api/v1", tags=["Проверка (re
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
-        "http://localhost"
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'http://localhost'
     ],
     allow_credentials=True,
     allow_methods=["*"],

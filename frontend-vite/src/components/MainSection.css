@@ -1,0 +1,25 @@
+/* src/components/MainSection.css */
+.main-section {
+    background-color: #f0f4f8; /* Светлый фон */
+    padding: 40px 20px;
+    border-radius: 8px;
+    text-align: center; /* Центрируем текст */
+}
+
+.title {
+    color: #195783; /* Цвет заголовка */
+    font-weight: bold; /* Жирный текст */
+}
+
+.description {
+    color: #333; /* Цвет текста описания */
+    margin-bottom: 20px; /* Отступ снизу */
+}
+
+.explore-button {
+    background-color: #fca12f; /* Цвет кнопки */
+    color: white; /* Цвет текста кнопки */
+    &:hover {
+        background-color: #e09e2f; /* Цвет кнопки при наведении */
+    }
+}

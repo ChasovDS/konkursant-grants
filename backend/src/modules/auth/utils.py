@@ -40,7 +40,10 @@ async def decode_jwt(request: Request) -> Dict:
 
     try:
         decoded = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
-        encrypted_payload = decoded['data']
+        encrypted_payload = decoded.get('data')  # Используем безопасное извлечение
+        if not encrypted_payload:
+            raise HTTPException(status_code=401, detail="Неверный токен")
+
         return decrypt_payload(encrypted_payload)
 
     except jwt.ExpiredSignatureError:
@@ -52,6 +55,7 @@ async def decode_jwt(request: Request) -> Dict:
     except Exception as e:
         logger.error(f"Ошибка декодирования: {str(e)}")
         raise HTTPException(status_code=500, detail="Ошибка декодирования")
+
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)

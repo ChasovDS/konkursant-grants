@@ -168,7 +168,7 @@ class DataExtractor:
             geography=[]  # Инициализируем как список
         )
 
-        lines = extract_between_headers(lines, ['Блок "Информация о проекте"'], 'Блок "География проекта"')
+        lines = extract_between_headers(lines, ['Блок "Информация о проекте"'], 'Вкладка "Команда')
 
         # Извлечение информации по заголовкам
         project_info["brief_info"] = ' '.join(extract_between_headers(
