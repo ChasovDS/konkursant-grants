@@ -11,6 +11,9 @@ class RoleEnum(str, Enum):
     EXPERT = "expert"
     USER = "user"
 
+class RoleUpdate(BaseModel):
+    role: RoleEnum
+
 class DirectionEnum(str, Enum):
     SOP = "СОП"
     SPO = "СПО"
@@ -71,10 +74,11 @@ class ProfileData(BaseModel):
 
 class UserSummary(BaseModel):
     user_id: str
-    external_service_accounts: ExternalServiceAccounts
+    role_name: RoleEnum
     full_name: Optional[str]
     last_name: Optional[str]
     first_name: Optional[str]
+    external_service_accounts: ExternalServiceAccounts
 
 class DataUserUpdate(BaseModel):
     """

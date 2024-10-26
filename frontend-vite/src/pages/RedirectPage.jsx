@@ -3,7 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
+
+
 const RedirectPage = () => {
+
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   const navigate = useNavigate();
   const hasProcessedToken = useRef(false);
 
@@ -15,7 +20,7 @@ const RedirectPage = () => {
     hasProcessedToken.current = true;
 
     try {
-      const response = await axios.post('http://localhost:8000/api/v1/auth/yandex', { token });
+      const response = await axios.post(`${apiUrl}/v1/auth/yandex`, { token });
       const jwtToken = response.data.token;
       console.log('JWT Токен:', jwtToken);
       
@@ -26,13 +31,13 @@ const RedirectPage = () => {
       } else {
         // Если окно не было открыто как всплывающее, просто устанавливаем куки и перенаправляем
         Cookies.set('auth_token', jwtToken, { secure: true, sameSite: 'Strict', expires: 7 });
-        navigate('/workspace');
+        navigate('/dashboard/workspace');
       }
     } catch (err) {
       console.error('Ошибка обмена токена:', err.response ? err.response.data : err.message);
       navigate('/auth');
     }
-  }, [navigate]);
+  },[navigate, apiUrl]);
 
   useEffect(() => {
     const script = document.createElement('script');

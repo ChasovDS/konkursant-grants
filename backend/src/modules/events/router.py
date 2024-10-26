@@ -21,7 +21,7 @@ async def create_event(event: EventCreate, token: dict = Depends(decode_jwt)):
     Создание нового мероприятия.
     - **event**: Данные о мероприятии.
     """
-    await check_permissions(token, operation_type == "high-level_event_operation")
+    await check_permissions(token, operation_type = "high-level_event_operation")
 
     user_id = token.get("user_id")
 

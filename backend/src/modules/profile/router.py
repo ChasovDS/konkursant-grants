@@ -3,13 +3,50 @@ from bson import ObjectId
 from typing import List, Optional, Union
 from src.modules.auth.utils import create_jwt, decode_jwt
 from src.utils import check_permissions
-from src.modules.profile.schemas import DataUserUpdate, RoleEnum, ProfileData, ExternalServiceAccounts, SquadInfo, UserSummary
+from src.modules.profile.schemas import DataUserUpdate, RoleEnum, ProfileData, ExternalServiceAccounts, SquadInfo, UserSummary, RoleUpdate
 from src.database import profile_data_collection, authorization_accounts_collection
 
 # Создаем экземпляр маршрутизатора
 router = APIRouter()
 
 SERVICE_NAME = "profile_service"
+
+
+
+# Эндпоинт для получения информации о пользователе
+@router.get("/users/me", response_model=Union[ProfileData, UserSummary])
+async def get_user_profile(
+        token: dict = Depends(decode_jwt),
+        details: Optional[bool] = Query(False),  # Параметр по умолчанию False
+        abbreviated: Optional[bool] = Query(False)  # Параметр по умолчанию False
+
+        # Декодируем токен для получения информации о пользователе
+):
+    """
+    Получение информации о пользователе.
+    user_id извлекается из токена.
+    """
+    user_id = token.get("user_id")  # Извлекаем user_id из токена
+
+    # Проверка формата user_id
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Неверный формат user ID")
+
+    # Поиск пользователя в базе данных
+    data_user = await profile_data_collection.find_one({"user_id": user_id})
+    if not data_user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    # Проверка прав доступа
+    if details:
+        await check_permissions(token, user_id=user_id)  # Проверяем доступ для полных данных
+        return ProfileData(**data_user)  # Возвращаем полные данные
+
+    if abbreviated:
+        await check_permissions(token)  # Проверяем доступ для сокращенных данных
+        return UserSummary(**data_user)  # Возвращаем сокращенные данные
+
+    raise HTTPException(status_code=400, detail="Укажите либо параметр «details», либо «abbreviated»")
 
 
 # Эндпоинт для получения всех пользователей
@@ -120,20 +157,17 @@ async def delete_user_profile(user_id: str, token: dict = Depends(decode_jwt)):
 @router.patch("/user/role/{user_id}", response_model=dict)
 async def assign_user_role(
     user_id: str,
-    role: RoleEnum,
+    role_update: RoleUpdate,  # Используем Pydantic модель
     token: dict = Depends(decode_jwt)
 ):
     """
     Изменение роли пользователя.
-
     """
 
     # Проверяем права доступа
     await check_permissions(token, operation_type="high-level_operation")
 
-    # Проверяем, указана ли роль для обновления
-    if not role:
-        raise HTTPException(status_code=400, detail="Не указана роль для обновления")
+    role = role_update.role
 
     # Обновляем роль пользователя в базе данных
     result = await profile_data_collection.update_one(
@@ -146,6 +180,7 @@ async def assign_user_role(
         raise HTTPException(status_code=404, detail="Пользователь не найден или роль не изменилась")
 
     return {"message": "Роль пользователя успешно обновлена", "user_id": user_id, "new_role": role}
+
 
 
 
