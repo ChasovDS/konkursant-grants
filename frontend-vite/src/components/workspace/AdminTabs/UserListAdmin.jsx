@@ -1,4 +1,3 @@
-// UserList.jsx
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -14,10 +13,10 @@ import {
   Button,
   TablePagination,
 } from '@mui/material';
+
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { PageContainer } from '@toolpad/core/PageContainer';
-
+import { useNavigate } from 'react-router-dom';
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -25,7 +24,9 @@ const UserList = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalUsers, setTotalUsers] = useState(0);
+  const navigate = useNavigate();
 
+  // Функция для получения списка пользователей
   const fetchUsers = async (page, limit) => {
     const jwtToken = Cookies.get('auth_token');
     try {
@@ -35,7 +36,6 @@ const UserList = () => {
         },
       });
       setUsers(response.data);
-      // Предположим, что API возвращает общее количество пользователей
       setTotalUsers(response.totalUsers || 0);
     } catch (error) {
       console.error('Ошибка при получении списка пользователей:', error);
@@ -44,24 +44,27 @@ const UserList = () => {
     }
   };
 
+  // Загрузка данных при изменении страницы или количества строк на странице
   useEffect(() => {
     fetchUsers(page, rowsPerPage);
   }, [page, rowsPerPage]);
 
+  // Обработчик изменения страницы
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
     setLoading(true);
   };
 
+  // Обработчик изменения количества строк на странице
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
     setLoading(true);
   };
 
+  // Переход на страницу профиля пользователя
   const handleViewProfile = (userId) => {
-    // Логика для открытия подробной информации о пользователе
-    console.log(`Просмотр профиля пользователя с ID: ${userId}`);
+    navigate(`/dashboard/workspace/profile/${userId}`);
   };
 
   if (loading) {
@@ -73,23 +76,24 @@ const UserList = () => {
   }
 
   return (
-    
     <Box sx={{ p: 2 }}>
       {users.length > 0 ? (
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Полное имя</TableCell>
-                <TableCell>Роль</TableCell>
-                <TableCell>Яндекс</TableCell>
-                <TableCell>Действия</TableCell>
+                <TableCell width="5%">#</TableCell>
+                <TableCell width="35%">Полное имя</TableCell>
+                <TableCell width="15%">Роль</TableCell>
+                <TableCell width="20%">Email</TableCell>
+                <TableCell width="25%">Действия</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {users.map((user) => (
+              {users.map((user, index) => (
                 <TableRow key={user.user_id}>
-                  <TableCell>{user.full_name}</TableCell>
+                  <TableCell>{index + 1 + page * rowsPerPage}</TableCell>
+                  <TableCell>{`${user.first_name} ${user.last_name} ${user.middle_name}`}</TableCell>
                   <TableCell>{user.role_name}</TableCell>
                   <TableCell>{user.external_service_accounts.yandex || 'N/A'}</TableCell>
                   <TableCell>

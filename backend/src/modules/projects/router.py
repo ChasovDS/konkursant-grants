@@ -37,84 +37,103 @@ SERVICE_NAME = "projects_service"
 
 
 
-# Эндпоинт для создания проекта
+# Эндпоинт для создания пустого проекта
 @router.post("/projects/create-empty", response_model=ProjectFICPersonSummary, status_code=status.HTTP_201_CREATED)
 async def create_project(
     project_template: ProjectTemplate,
     token: dict = Depends(decode_jwt)
 ):
-    # Проверяем права доступа
     await check_permissions(token)
 
-    # Создаем новый проект
     new_project = await create_empty_project(token, project_template)
 
-    # Проверка на наличие необходимых полей в new_project
     required_fields = ['project_name', 'author_id', 'author_name', 'project_template']
     for field in required_fields:
         if field not in new_project:
             logger.error(f"Отсутствует обязательное поле: {field}")
             raise HTTPException(status_code=400, detail=f"Отсутствует обязательное поле: {field}")
 
-    # Вставляем проект в коллекцию базы данных
     try:
         result = await projects_data_collection.insert_one(new_project)
     except Exception as e:
         logger.exception("Ошибка при сохранении проекта")
         raise HTTPException(status_code=500, detail="Ошибка при сохранении проекта")
 
-    # Получаем созданный проект из базы данных
     created_project = await projects_data_collection.find_one({"_id": result.inserted_id})
-
     if not created_project:
         logger.error("Созданный проект не найден в базе данных")
         raise HTTPException(status_code=404, detail="Созданный проект не найден")
 
-    # Преобразуем MongoDB документ в Pydantic модель
     try:
         return await convert_project_to_summary(created_project)
     except ValidationError as ve:
         logger.exception("Ошибка валидации данных")
         raise HTTPException(status_code=422, detail=f"Ошибка валидации данных: {ve}")
 
-
+# Эндпоинт для создания проекта из файла
 @router.post("/projects/create-from-file", response_model=ProjectFICPersonSummary, status_code=status.HTTP_201_CREATED)
 async def create_project(
     project_template: ProjectTemplate,
     input_file: UploadFile = File(...),
     token: dict = Depends(decode_jwt)
 ):
-    # Проверяем права доступа
     await check_permissions(token)
 
-    # Создание проекта из файла
     file_path = await save_upload_file(input_file)
-
     new_project = await create_project_from_file(token, project_template, file_path)
 
-
-    # Вставляем проект в коллекцию базы данных
     try:
         result = await projects_data_collection.insert_one(new_project)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при сохранении проекта: {e}")
 
-    # Получаем созданный проект из базы данных
     created_project = await projects_data_collection.find_one({"_id": result.inserted_id})
-
     if not created_project:
         raise HTTPException(status_code=404, detail="Созданный проект не найден")
 
-    # Преобразуем MongoDB документ в Pydantic модель
     try:
-        return await convert_project_to_summary(created_project)  # Здесь добавлено 'await'
+        return await convert_project_to_summary(created_project)
     except ValidationError as ve:
         raise HTTPException(status_code=422, detail=f"Ошибка валидации данных: {ve}")
 
 
 
+# Эндпоинт для получения собственных проектов
+@router.get("/projects/me", response_model=List[ProjectFICPersonSummary])
+async def get_my_projects(
+    skip: int = Query(0, ge=0),  # Параметр для пропуска записей
+    limit: int = Query(10, ge=1),  # Параметр для ограничения количества записей
+    name: Optional[str] = None,  # Фильтр по имени проекта
+    author: Optional[str] = None,  # Фильтр по автору
+    template: Optional[str] = None,  # Фильтр по шаблону
+    token: dict = Depends(decode_jwt)
+):
+    """
+    Получение списка собственных проектов с пагинацией и фильтрацией.
+    user_id извлекается из токена.
+    """
+    user_id = token.get("user_id")  # Извлекаем user_id из токена
 
+    # Проверка формата user_id
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Неверный формат user ID")
 
+    # Формируем базовый запрос для получения проектов текущего пользователя
+    query = {"author_id": user_id}
+
+    # Добавляем фильтры, если они указаны
+    if name:
+        query["project_name"] = {"$regex": name, "$options": "i"}  # Регистронезависимый поиск
+    if author:
+        query["author_name"] = {"$regex": author, "$options": "i"}  # Регистронезависимый поиск
+    if template:
+        query["project_template"] = {"$regex": template, "$options": "i"}  # Регистронезависимый поиск
+
+    # Получаем проекты из базы данных с пагинацией
+    projects_cursor = projects_data_collection.find(query).skip(skip).limit(limit)
+    projects = [await convert_project_to_summary(project) async for project in projects_cursor]
+
+    return projects
 
 
 

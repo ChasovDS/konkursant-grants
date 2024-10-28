@@ -64,7 +64,7 @@ const NAVIGATION = [
   },
   {
     segment: 'dashboard/workspace/projects',
-    title: 'Проекты',
+    title: 'Мои проекты',
     icon: <ProjectIcon />, // Иконка для проектов
   },
   {

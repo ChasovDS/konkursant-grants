@@ -13,15 +13,16 @@ import DashboardPage from './pages/WorkspacePages/DashboardPage.jsx';
 //import Profile from './components/workspace/Profile';
 import Profile from'./pages/WorkspacePages/ProfilePage';
 import Admin from'./pages/WorkspacePages/AdminPage';
-import Projects from './components/workspace/Projects';
+import ProjectsPage from './pages/WorkspacePages/ProjectsPage';
 import Events from './components/workspace/Events';
 import Reviews from './components/workspace/Reviews';
 
-import UserList from './components/workspace/UserList';
-import EventListAdmin from './components/workspace/EventListAdmin';
-import ProjectListAdmin from './components/workspace/ProjectListAdmin'; 
-import ReviewListAdmin from './components/workspace/ReviewListAdmin'; 
-import RoleManagerAdmin from './components/workspace/RoleManagerAdmin'; 
+import UserProfile from './components/workspace/UserProfile'; 
+import UserListAdmin from './components/workspace/AdminTabs/UserListAdmin.jsx';
+import EventListAdmin from './components/workspace/AdminTabs/EventListAdmin.jsx';
+import ProjectListAdmin from './components/workspace/AdminTabs/ProjectListAdmin.jsx'; 
+import ReviewListAdmin from './components/workspace/AdminTabs/ReviewListAdmin.jsx'; 
+import RoleManagerAdmin from './components/workspace/AdminTabs/RoleManagerAdmin.jsx'; 
 
 import NotFound from './pages/NotFound'; // Страница 404
 import theme from './theme/theme';
@@ -58,8 +59,8 @@ const router = createBrowserRouter([
             path: 'workspace/admin-page',
             element: <Admin />,
                children: [
-                  { index: true, element: <UserList /> },
-                  { path: 'users', element: <UserList /> },
+                  { index: true, element: <UserListAdmin /> },
+                  { path: 'users', element: <UserListAdmin /> },
                   { path: 'events', element: <EventListAdmin /> },
                   { path: 'projects', element: <ProjectListAdmin /> },
                   { path: 'reviews', element: <ReviewListAdmin /> },
@@ -71,8 +72,12 @@ const router = createBrowserRouter([
             element: <Profile />, // Страница профиля
           },
           {
+            path: 'workspace/profile/:userId', // Новый маршрут для профиля пользователя
+            element: <UserProfile />,
+          },
+          {
             path: 'workspace/projects',
-            element: <Projects />, // Страница проектов
+            element: <ProjectsPage />, // Страница проектов
           },
           {
             path: 'workspace/events',
