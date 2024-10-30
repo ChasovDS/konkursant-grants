@@ -1,46 +1,53 @@
-// src/components/ProjectCard.jsx
-
-import React from 'react';
-import { Card, CardContent, Typography, Button, Box } from '@mui/material';
+import React, { useState } from 'react';
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, Typography, Button, Box, Chip, Avatar } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Edit, Archive, Delete } from '@mui/icons-material';
-import EventIcon from '@mui/icons-material/Event'; // Убедитесь, что путь правильный
-import StarIcon from '@mui/icons-material/Star'; // Иконка для кнопки "Оценить проект"
+import EventIcon from '@mui/icons-material/Event';
+import StarIcon from '@mui/icons-material/Star';
+import DeleteProjectModal from './DeleteProjectModal';
 
 const AnimatedCard = styled(Card)(({ theme }) => ({
   margin: '10px',
-  borderRadius: '8px',
+  borderRadius: '12px',
   display: 'flex',
   flexDirection: 'row',
-  padding: '16px',
+  padding: '20px',
   width: '100%',
-  backgroundColor: '#f9f9f9',
+  backgroundColor: '#f1f1f1',
   transition: 'transform 0.3s, box-shadow 0.3s',
   '&:hover': {
-    transform: 'scale(1.01)',
-    boxShadow: theme.shadows[5],
+    transform: 'scale(1.005)',
+    boxShadow: theme.shadows[6],
   },
 }));
 
 const CustomButton = styled(Button)(({ theme }) => ({
   textTransform: 'none',
-  marginBottom: '8px',
+  margin: '6px 0',
   justifyContent: 'flex-start',
-  border: 'none', // Убираем обводку
+  borderRadius: '8px',
   '&:hover': {
-    backgroundColor: theme.palette.action.hover, // Можно добавить эффект при наведении
+    backgroundColor: theme.palette.action.hover,
   },
 }));
 
-const ProjectCard = ({ project }) => {
-  const { project_name, author_name, creation_date, project_template, reviews } = project;
+const ProjectCard = ({ project, onProjectCreated }) => {
+  const navigate = useNavigate();
+  const { project_name, project_id, author_name, creation_date, project_template, reviews } = project;
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
 
-  // Вычисляем количество проверок и среднее значение оценок
-  const reviewCount = reviews.length;
+  const reviewCount = reviews ? reviews.length : 0;
   const averageScore =
     reviewCount > 0
       ? (reviews.reduce((acc, review) => acc + review.score, 0) / reviewCount).toFixed(2)
       : 0;
+
+  const handleViewProject = () => {
+    navigate(`/dashboard/workspace/projects/${project_id}`);
+  };
 
   const handleOpenProject = () => {
     alert(`Открыть проект: ${project_name}`);
@@ -50,20 +57,46 @@ const ProjectCard = ({ project }) => {
     alert(`Архивировать проект: ${project_name}`);
   };
 
-  const handleDeleteProject = () => {
-    alert(`Удалить проект: ${project_name}`);
-  };
-
   const handleRateProject = () => {
     alert(`Оценить проект: ${project_name}`);
   };
 
+  const handleOpenDeleteModal = () => {
+    setDeleteModalOpen(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setDeleteModalOpen(false);
+  };
+
+  const handleDeleteConfirm = async () => {
+    const jwtToken = Cookies.get('auth_token');
+    try {
+      await axios.delete(`http://127.0.0.1:8000/api/v1/projects/${project_id}`, {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      });
+
+      setDeleteModalOpen(false);
+      if (typeof onProjectCreated === 'function') {
+        onProjectCreated();
+      }
+    } catch (error) {
+      console.error('Ошибка при удалении проекта:', error);
+      alert(`Ошибка при удалении проекта "${project_name}": ${error.response?.data?.message || 'Неизвестная ошибка'}`);
+    }
+  };
+
   return (
     <AnimatedCard variant="outlined">
-      <CardContent style={{ flex: 1 }}>
-        <Typography variant="h6" component="div" style={{ fontWeight: 'bold' }}>
-          {project_name}
-        </Typography>
+      <CardContent style={{ flex: 1 }} onClick={handleViewProject}>
+        <Box display="flex" alignItems="center" mb={1}>
+          <Typography variant="h6" component="div" style={{ fontWeight: 'bold', flex: 1 }}>
+            {project_name}
+          </Typography>
+          <Chip label="Активный" color="primary" size="small" variant="outlined" />
+        </Box>
         <Typography color="primary" style={{ fontStyle: 'italic' }}>
           Шаблон: {project_template}
         </Typography>
@@ -73,9 +106,11 @@ const ProjectCard = ({ project }) => {
         <Typography color="textSecondary" style={{ marginTop: '8px' }}>
           Автор: {author_name}
         </Typography>
-        <Typography color="textSecondary" style={{ marginTop: '8px' }}>
-          Количество проверок: {reviewCount} | Средняя оценка: {averageScore} | Ваша оценка: Не требуется
-        </Typography>
+        <Box display="flex" alignItems="center" style={{ marginTop: '8px' }}>
+          <Typography color="textSecondary">
+            Количество проверок: {reviewCount} | Средняя оценка: {averageScore} | Ваша оценка: Не требуется
+          </Typography>
+        </Box>
       </CardContent>
       <Box display="flex" flexDirection="column" justifyContent="space-between" style={{ marginLeft: '16px' }}>
         <CustomButton
@@ -99,21 +134,27 @@ const ProjectCard = ({ project }) => {
           Подать проект на мероприятие
         </CustomButton>
         <CustomButton
-          color="primary" // Цвет кнопки для оценки
+          color="primary"
           onClick={handleRateProject}
-          startIcon={<StarIcon />} // Иконка для кнопки "Оценить проект"
+          startIcon={<StarIcon />}
         >
           Оценить проект
         </CustomButton>
         <CustomButton
-          color="default" // Используем "default" для кнопки
-          onClick={handleDeleteProject}
+          color="default"
+          onClick={handleOpenDeleteModal}
           startIcon={<Delete />}
-          sx={{ color: 'gray' }} // Устанавливаем серый цвет текста
+          sx={{ color: 'gray' }}
         >
           Удалить проект
         </CustomButton>
       </Box>
+      <DeleteProjectModal
+        open={isDeleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleDeleteConfirm}
+        projectName={project_name}
+      />
     </AnimatedCard>
   );
 };

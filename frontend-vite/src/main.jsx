@@ -13,11 +13,13 @@ import DashboardPage from './pages/WorkspacePages/DashboardPage.jsx';
 //import Profile from './components/workspace/Profile';
 import Profile from'./pages/WorkspacePages/ProfilePage';
 import Admin from'./pages/WorkspacePages/AdminPage';
-import ProjectsPage from './pages/WorkspacePages/ProjectsPage';
+import ListProjectsPage from './pages/WorkspacePages/ListProjectsPage.jsx';
 import Events from './components/workspace/Events';
 import Reviews from './components/workspace/Reviews';
 
 import UserProfile from './components/workspace/UserProfile'; 
+//import ProjectDetails from './components/workspace/ProjectDetails'; 
+import ProjectDetails from './components/ViewDetailsProject/_ProjectDetails.jsx'; 
 import UserListAdmin from './components/workspace/AdminTabs/UserListAdmin.jsx';
 import EventListAdmin from './components/workspace/AdminTabs/EventListAdmin.jsx';
 import ProjectListAdmin from './components/workspace/AdminTabs/ProjectListAdmin.jsx'; 
@@ -77,7 +79,11 @@ const router = createBrowserRouter([
           },
           {
             path: 'workspace/projects',
-            element: <ProjectsPage />, // Страница проектов
+            element: <ListProjectsPage />, // Страница проектов
+          },
+          {
+            path: 'workspace/projects/:projectId', // Новый маршрут для профиля пользователя
+            element: <ProjectDetails />,
           },
           {
             path: 'workspace/events',

@@ -1,4 +1,4 @@
-// src/pages/workspace/ProjectsPage.jsx
+// src/pages/workspace/ListProjectsPage.jsx
 
 import React, { useEffect, useState } from 'react';
 import { Typography, Box, Pagination, CircularProgress, Tabs, Tab, Button } from '@mui/material';
@@ -80,8 +80,8 @@ const ProjectsPage = () => {
     <Box>
       <Tabs value={tabIndex} onChange={handleChangeTab} sx={{ alignItems: 'flex-start' }}>
         <Tab label="Актуальные проекты" />
-        <Tab label="Архив" />
-        <Tab label="Совместные проекты" />
+        <Tab label="Архив"  disabled={true} />
+        <Tab label="Совместные проекты"  disabled={true} />
       </Tabs>
 
       <ProjectFilter 
@@ -93,7 +93,7 @@ const ProjectsPage = () => {
         <>
           {projects.length > 0 ? (
             <>
-              <ProjectsList projects={projects} />
+              <ProjectsList projects={projects} onProjectCreated={() => fetchProjects(page, filters)} /> 
               <Pagination
                 count={Math.ceil(totalProjects / limit)}
                 page={page}
