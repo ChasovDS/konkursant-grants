@@ -13,12 +13,13 @@ import DashboardPage from './pages/WorkspacePages/DashboardPage.jsx';
 //import Profile from './components/workspace/Profile';
 import Profile from'./pages/WorkspacePages/ProfilePage';
 import Admin from'./pages/WorkspacePages/AdminPage';
-import ListProjectsPage from './pages/WorkspacePages/ListProjectsPage.jsx';
-import Events from './components/workspace/Events';
+import ProjectsPage from './pages/WorkspacePages/ProjectsPage.jsx';
+import EventsPage from './pages/WorkspacePages/EventsPage';
 import Reviews from './components/workspace/Reviews';
 
 import UserProfile from './components/workspace/UserProfile'; 
-//import ProjectDetails from './components/workspace/ProjectDetails'; 
+import EventsDetails from './components/ComponentsEvents/_EventsDetails'; 
+import EventsDetailsEdit from './components/ComponentsEvents/_EventsDetailsEdit'; 
 import ProjectDetails from './components/ViewDetailsProject/_ProjectDetails.jsx'; 
 import UserListAdmin from './components/workspace/AdminTabs/UserListAdmin.jsx';
 import EventListAdmin from './components/workspace/AdminTabs/EventListAdmin.jsx';
@@ -79,15 +80,23 @@ const router = createBrowserRouter([
           },
           {
             path: 'workspace/projects',
-            element: <ListProjectsPage />, // Страница проектов
+            element: <ProjectsPage />, // Страница проектов
           },
           {
-            path: 'workspace/projects/:projectId', // Новый маршрут для профиля пользователя
+            path: 'workspace/projects/:projectId', 
             element: <ProjectDetails />,
           },
           {
             path: 'workspace/events',
-            element: <Events />, // Страница событий
+            element: <EventsPage />, // Страница событий
+          },
+          {
+            path: 'workspace/events/:eventId',
+            element: <EventsDetails />, 
+          },
+          {
+            path: 'workspace/events/edit/:eventId',
+            element: <EventsDetailsEdit />, 
           },
           {
             path: 'workspace/reviews',

@@ -32,34 +32,36 @@ class Resource(BaseModel):
     other: Optional[str] = None
 
 class EventBase(BaseModel):
+    id_event: Optional[str] = None
     ordinal_number: int = Field(...)
     full_title: str = Field(...)
-    short_title: str = Field(...)
     logo: Optional[str] = Field(None)
     event_type: str = Field(...)
     tags: List[str] = Field(default_factory=list)
     format: str = Field(...)
-    event_status: Optional[EventStatus] = Field(EventStatus.SCHEDULED)
+    event_status: Optional[str] = Field("SCHEDULED")
     creator_event: CreatorEvent
-    organization: str = Field(...)
+    organization: str = Field("")
     event_start_date: datetime = Field(...)
     event_end_date: datetime = Field(...)
-    resources: List[Resource] = Field(default_factory=list)
-    location: str = Field(...)
-    description: str = Field(...)
+    resources: List[str] = Field(default_factory=list)
+    location: str = Field("")
+    description: str = Field("")
     additional_resources: Optional[str] = Field(None)
-    contact_info: str = Field(...)
-    managers: List[ManagersID] = Field(default_factory=list)
-    experts: List[ExpertsID] = Field(default_factory=list)
-    spectators: List[SpectatorsID] = Field(default_factory=list)
-    participants: Optional[List[Authors]] = Field(default_factory=list)
-
-class EventCreate(EventBase):
-    pass
+    contact_info: str = Field("")
+    managers: Optional[List[str]] = Field(default_factory=list)
+    experts: Optional[List[str]] = Field(default_factory=list)
+    spectators: Optional[List[str]] = Field(default_factory=list)
+    participants: Optional[List[str]] = Field(default_factory=list)
 
 
-class Event(EventBase):
-    id_event: Optional[str] = None
+class EventCreate(BaseModel):
+    full_title: str = Field(...)
+    event_type: str = Field(...)
+    format: str = Field(...)
+    event_start_date: datetime = Field(...)
+    event_end_date: datetime = Field(...)
+
 
 
 class EventReducedl(BaseModel):
@@ -77,3 +79,7 @@ class EventReducedl(BaseModel):
     experts: List[ExpertsID] = Field(default_factory=list)
     spectator: List[SpectatorsID] = Field(default_factory=list)
     participants: List[Authors] = Field(default_factory=list)
+
+class PaginatedResponse(BaseModel):
+    events: List[EventReducedl]
+    total: int

@@ -28,6 +28,7 @@ import MediaTab from './MediaTab';
 import ExpensesTab from './ExpensesTab';
 import SelfFinancingTab from './SelfFinancingTab';
 import AdditionalFilesTab from './AdditionalFilesTab';
+import ExpertReviews from './ExpertReviews';
 
 // Конфигурация вкладок
 const tabConfig = [
@@ -40,6 +41,7 @@ const tabConfig = [
   { id: 'tab_expenses', label: 'Расходы', component: 'ExpensesTab' },
   { id: 'tab_cofinancing', label: 'Софинансирование', component: 'SelfFinancingTab' },
   { id: 'tab_additional_files', label: 'Доп. файлы', component: 'AdditionalFilesTab' },
+  { id: 'tab_expert_reviews', label: 'Оценка экспертов', component: 'ExpertReviews' },
 ];
 
 // Главный компонент ProjectDetails
@@ -110,6 +112,8 @@ const ProjectDetails = () => {
         return <SelfFinancingTab data={tabData} />;
       case 'AdditionalFilesTab':
         return <AdditionalFilesTab data={tabData} />;
+      case 'ExpertReviews':
+        return <ExpertReviews data={tabData} />;
       default:
         return <Typography>Вкладка находится в разработке.</Typography>;
     }
@@ -139,9 +143,16 @@ const ProjectDetails = () => {
         value={activeTab}
         onChange={handleTabChange}
         aria-label="Project Tabs"
-        variant="scrollable"
+
         scrollButtons="auto"
-        sx={{ marginBottom: 2 }}
+        sx={{
+          marginBottom: 2,
+          '.MuiTab-root': {
+            minWidth: 'auto', // Снимет минимальную ширину с каждой вкладки
+            fontSize: '0.89rem', // Уменьшит размер шрифта вкладок
+            padding: '4px 8px', // Уменьшит внутренние отступы
+          },
+        }}
       >
         {tabConfig.map((tab) => (
           <Tab key={tab.id} label={tab.label} />

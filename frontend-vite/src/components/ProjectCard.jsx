@@ -16,7 +16,6 @@ const AnimatedCard = styled(Card)(({ theme }) => ({
   flexDirection: 'row',
   padding: '20px',
   width: '100%',
-  backgroundColor: '#f1f1f1',
   transition: 'transform 0.3s, box-shadow 0.3s',
   '&:hover': {
     transform: 'scale(1.005)',

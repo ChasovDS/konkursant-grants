@@ -1,7 +1,7 @@
-// src/pages/workspace/ListProjectsPage.jsx
+// src\pages\WorkspacePages\ProjectsPage.jsx
 
 import React, { useEffect, useState } from 'react';
-import { Typography, Box, Pagination, CircularProgress, Tabs, Tab, Button } from '@mui/material';
+import { Typography, Box, Pagination, CircularProgress, Tabs, Tab} from '@mui/material';
 import ProjectsList from '../../components/ProjectsList';
 import ProjectFilter from '../../components/ProjectFilter';
 import CreateProjectModal from '../../components/CreateProjectModal'; // Импортируем модальное окно
