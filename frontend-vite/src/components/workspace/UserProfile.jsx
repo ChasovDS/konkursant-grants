@@ -40,7 +40,7 @@ const UserProfile = () => {
   const handleSaveClick = async () => {
     const jwtToken = Cookies.get('auth_token');
     try {
-      await axios.put(`http://127.0.0.1:8000/api/v1/users/${formData.user_id}/profile`, formData, {
+      await axios.patch(`http://127.0.0.1:8000/api/v1/users/${formData.user_id}/profile`, formData, {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
         },
@@ -62,11 +62,28 @@ const UserProfile = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+  
+    // Разделяем имя поля по точке, чтобы получить доступ к вложенным объектам
+    const keys = name.split('.');
+    setFormData((prevData) => {
+      let newData = { ...prevData };
+      let currentLevel = newData;
+  
+      // Проходим по всем уровням вложенности, кроме последнего
+      for (let i = 0; i < keys.length - 1; i++) {
+        if (!currentLevel[keys[i]]) {
+          currentLevel[keys[i]] = {};
+        }
+        currentLevel = currentLevel[keys[i]];
+      }
+  
+      // Устанавливаем новое значение
+      currentLevel[keys[keys.length - 1]] = value;
+  
+      return newData;
+    });
   };
+  
 
   if (loading) {
     return (

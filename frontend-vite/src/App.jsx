@@ -9,9 +9,6 @@ import EventIcon from '@mui/icons-material/Event';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import HelpIcon from '@mui/icons-material/Help';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import PeopleIcon from '@mui/icons-material/People';
-import WorkIcon from '@mui/icons-material/Work';
-import SecurityIcon from '@mui/icons-material/Security';
 
 
 
@@ -28,34 +25,7 @@ const NAVIGATION = [
   {
     segment: 'dashboard/workspace/admin-page',
     title: 'Администрирование',
-    icon: <AdminPanelSettingsIcon />,
-    children: [
-      {
-        segment: 'users',
-        title: 'Пользователи',
-        icon: <PeopleIcon />, // Иконка для пользователей
-      },
-      {
-        segment: 'events',
-        title: 'Мероприятия',
-        icon: <EventIcon />, // Иконка для мероприятий
-      },
-      {
-        segment: 'projects',
-        title: 'Проекты',
-        icon: <WorkIcon />, // Иконка для проектов
-      },
-      {
-        segment: 'reviews',
-        title: 'Проверки',
-        icon: <RateReviewIcon />, // Иконка для проверок
-      },
-      {
-        segment: 'role-manager',
-        title: 'Менеджер ролей',
-        icon: <SecurityIcon />, // Иконка для менеджера ролей
-      },
-    ],
+    icon: <AdminPanelSettingsIcon />
   },
   {
     segment: 'dashboard/workspace/profile',

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException, Depends, Response, Cookie
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from fastapi import Query
 from bson import ObjectId
 from src.modules.auth.utils import create_jwt, decode_jwt
 from src.utils import check_permissions
 from pymongo import DESCENDING
-from src.modules.events.schemas import EventBase, EventCreate, EventReducedl, EventStatus
+from src.modules.events.schemas import EventBase, EventCreate, EventReduced
 from src.modules.projects.schemas import ProjectFICPersonSummary
 from src.modules.profile.schemas import UserSummary
 from src.database import projects_data_collection, events_data_collection, profile_data_collection
@@ -15,123 +15,38 @@ from src.database import projects_data_collection, events_data_collection, profi
 router = APIRouter()
 
 
+
 SERVICE_NAME = "events_service"
 
 
-# Эндпоинт для создания мероприятия
+# Эндпоинт для создания или обновления мероприятия
 @router.post("/events", response_model=EventBase, status_code=201)
-async def create_event(event: EventCreate, token: dict = Depends(decode_jwt)):
+async def create_or_update_event(event: EventCreate, token: dict = Depends(decode_jwt)):
     """
-    Создание нового мероприятия.
+    Создание или обновление мероприятия.
     - **event**: Данные о мероприятии.
     """
     await check_permissions(token, operation_type="high-level_event_operation")
 
     user_id = token.get("user_id")
 
-    # Подготовка данных для сохранения в БД
+    # Подготовка данных для мероприятия
     event_data = {
-        "ordinal_number": 0,  # Пример значения, его нужно будет генерировать или получать
-        "full_title": event.full_title,
-        "logo": "https://storage.yandexcloud.net/newspressfeed/wp-content/uploads/2023/12/offline-events.png",
-        "event_type": event.event_type,
-        "tags": [],
-        "format": event.format,
-        "event_status": EventStatus.SCHEDULED,
-        "creator_event": {
-            "creator_event_user_id": str(user_id)
-        },
-        "organization": "",
-        "event_start_date": event.event_start_date,
-        "event_end_date": event.event_end_date,
-        "resources": [],
-        "location": "",
-        "description": "",
-        "additional_resources": None,
-        "contact_info": "",
-        "managers": [],
-        "experts": [],
-        "spectators": [],
-        "participants": []
+        "event_creator": user_id,
+        "event_managers": [],
+        "event_experts": [],
+        "event_spectators": [],
+        "event_participants": [],
+        **event.dict()  # Объединяем дополнительные данные из event
     }
 
     new_event = await events_data_collection.insert_one(event_data)
     created_event = await events_data_collection.find_one({"_id": new_event.inserted_id})
-
     if not created_event:
         raise HTTPException(status_code=404, detail="Мероприятие не найдено")
 
-    created_event["id_event"] = str(new_event.inserted_id)
     return EventBase(**created_event)
 
-
-# Эндпоинт для получения списка мероприятий с пагинацией
-@router.get("/events", response_model=List[EventReducedl])
-async def get_events(
-        full_title: str = None,
-        event_type: str = None,
-        tags: str = None,
-        format: str = None,
-        event_status: str = None,
-        location: str = None,
-        skip: int = Query(0, ge=0),
-        limit: int = Query(10, ge=1),
-        token: dict = Depends(decode_jwt)
-):
-    await check_permissions(token)
-
-    # Формируем запрос с учетом фильтров
-    query = {}
-
-    if full_title:
-        query["full_title"] = {"$regex": full_title, "$options": "i"}
-
-    if event_type:
-        query["event_type"] = event_type
-
-    if tags:
-        # Предполагаем, что теги разделены запятыми
-        tag_list = [tag.strip() for tag in tags.split(",")]
-        query["tags"] = {"$in": tag_list}
-
-    if format:
-        query["format"] = format
-
-    if event_status:
-        query["event_status"] = event_status
-
-    if location:
-        query["location"] = {"$regex": location, "$options": "i"}
-
-    # Получаем общее количество мероприятий
-    total_events = await events_data_collection.count_documents(query)
-
-    # Получаем мероприятия с учетом пагинации и сортировки
-    events = await events_data_collection.find(query).skip(skip).limit(limit).sort("date", DESCENDING).to_list(length=limit)
-
-    for event in events:
-        event['id_event'] = str(event['_id'])
-
-    return [EventReducedl(**event) for event in events]
-
-
-# Эндпоинт для получения мероприятия по ID
-@router.get("/events/{event_id}", response_model=EventBase)
-async def get_event(event_id: str, token: dict = Depends(decode_jwt)):
-    """
-    Получение мероприятия по его ID.
-    - **event_id**: ID мероприятия.
-    """
-    await check_permissions(token)
-
-    event = await events_data_collection.find_one({"_id": ObjectId(event_id)})
-    if not event:
-        raise HTTPException(status_code=404, detail="Мероприятие не найдено")
-
-    # Добавление id_event
-    event['id_event'] = str(event['_id'])
-
-    return EventBase(**event)
 
 
 # Эндпоинт для обновления мероприятия
@@ -151,6 +66,68 @@ async def update_event(event_id: str, event: EventBase, token: dict = Depends(de
     if not updated_event:
         raise HTTPException(status_code=404, detail="Мероприятие не найдено")
     return EventBase(**updated_event)
+
+
+# Эндпоинт для получения списка мероприятий с пагинацией
+@router.get("/events", response_model=Dict[str, Any])
+async def get_events(
+        full_title: str = None,
+        event_type: str = None,
+        tags: str = None,
+        format: str = None,
+        event_status: str = None,
+        location: str = None,
+        page: int = Query(1, ge=1),
+        limit: int = Query(10, ge=1),
+        token: dict = Depends(decode_jwt)
+):
+    await check_permissions(token)
+
+    # Расчет пропускаемых элементов для текущей страницы
+    skip = (page - 1) * limit
+    query = {}
+
+    if full_title:
+        query["event_full_title"] = {"$regex": full_title, "$options": "i"}
+    if event_type:
+        query["event_type"] = event_type
+    if tags:
+        tag_list = [tag.strip() for tag in tags.split(",")]
+        query["event_tags"] = {"$in": tag_list}
+    if format:
+        query["event_format"] = format
+    if event_status:
+        query["event_status"] = event_status
+    if location:
+        query["event_venue"] = {"$regex": location, "$options": "i"}
+
+    total_events = await events_data_collection.count_documents(query)
+    events = await events_data_collection.find(query).skip(skip).limit(limit).sort("date", DESCENDING).to_list(
+        length=limit)
+
+    for event in events:
+        event['id_event'] = str(event['_id'])
+
+    return {"total": total_events, "events": [EventReduced(**event) for event in events]}
+
+
+# Эндпоинт для получения мероприятия по ID
+@router.get("/events/{event_id}", response_model=EventBase)
+async def get_event(event_id: str, token: dict = Depends(decode_jwt)):
+    """
+    Получение мероприятия по его ID.
+    - **event_id**: ID мероприятия.
+    """
+    await check_permissions(token)
+
+    event = await events_data_collection.find_one({"_id": ObjectId(event_id)})
+    if not event:
+        raise HTTPException(status_code=404, detail="Мероприятие не найдено")
+
+    # Добавление id_event
+    event['id_event'] = str(event['_id'])
+
+    return EventBase(**event)
 
 
 # Эндпоинт для удаления мероприятия

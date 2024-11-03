@@ -1,4 +1,4 @@
-// src\components\ViewDetailsProject\ExpertReviews.jsx
+// src\components\ViewDetailsProject\ListExpertReviews.jsx
 
 import React from 'react';
 import {
@@ -19,7 +19,7 @@ const MediaTab = () => {
 
   return (
     <div style={{ borderRadius: '8px' }}>
-        Тут будет оценка эксперта
+        Тут будет список оценок экспертов
     </div>
   );
 };

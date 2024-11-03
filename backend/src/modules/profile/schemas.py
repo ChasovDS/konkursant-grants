@@ -42,7 +42,12 @@ class ExternalServiceAccounts(BaseModel):
     yandex: Optional[str] = None
     email: Optional[str] = None
     vk: Optional[str] = None
+    telegram: Optional[str] = None
 
+
+class ExternalServiceAccountsUpdate(BaseModel):
+    vk: Optional[str] = None
+    telegram: Optional[str] = None
 
 class SquadInfo(BaseModel):
     direction: Optional[str] = None  # Предположим, что это строка
@@ -60,6 +65,7 @@ class ProfileData(BaseModel):
     city: Optional[str] = None  # Город пользователя
     gender: Optional[str] = None  # Пол пользователя
     birthday: Optional[str] = None
+    user_information: Optional[str] = None
     profile_photo_upl: Optional[str] = None
     external_service_accounts: ExternalServiceAccounts
     role_name: RoleEnum
@@ -93,5 +99,7 @@ class DataUserUpdate(BaseModel):
     phone: Optional[str] = None  # Телефонный номер
     city: Optional[str] = None  # Город пользователя
     gender: Optional[str] = None  # Пол пользователя
+    user_information: Optional[str] = None
+    external_service_accounts: ExternalServiceAccountsUpdate
     squad_info: SquadInfo
 

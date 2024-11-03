@@ -9,23 +9,24 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Instructions from './pages/Instructions';
 import RedirectPage from './pages/RedirectPage';
-import DashboardPage from './pages/WorkspacePages/DashboardPage.jsx';
-//import Profile from './components/workspace/Profile';
+import DashboardPage from './pages/WorkspacePages/DashboardPage';
 import Profile from'./pages/WorkspacePages/ProfilePage';
 import Admin from'./pages/WorkspacePages/AdminPage';
-import ProjectsPage from './pages/WorkspacePages/ProjectsPage.jsx';
+import ProjectsPage from './pages/WorkspacePages/ProjectsPage';
 import EventsPage from './pages/WorkspacePages/EventsPage';
+import CreateEventPage from './pages/WorkspacePages/CreateEventPage';
+import UpdateEventPage from './pages/WorkspacePages/UpdateEventPage';
+
 import Reviews from './components/workspace/Reviews';
 
+import Test from './components/ComponentsEvents/test'; 
+
 import UserProfile from './components/workspace/UserProfile'; 
-import EventsDetails from './components/ComponentsEvents/_EventsDetails'; 
-import EventsDetailsEdit from './components/ComponentsEvents/_EventsDetailsEdit'; 
+
+import EventCreate from './components/ComponentsEvents/_EventCreate'; 
+import EventEdit from './components/ComponentsEvents/_EventEdit';
+
 import ProjectDetails from './components/ViewDetailsProject/_ProjectDetails.jsx'; 
-import UserListAdmin from './components/workspace/AdminTabs/UserListAdmin.jsx';
-import EventListAdmin from './components/workspace/AdminTabs/EventListAdmin.jsx';
-import ProjectListAdmin from './components/workspace/AdminTabs/ProjectListAdmin.jsx'; 
-import ReviewListAdmin from './components/workspace/AdminTabs/ReviewListAdmin.jsx'; 
-import RoleManagerAdmin from './components/workspace/AdminTabs/RoleManagerAdmin.jsx'; 
 
 import NotFound from './pages/NotFound'; // Страница 404
 import theme from './theme/theme';
@@ -60,15 +61,7 @@ const router = createBrowserRouter([
           },
           {
             path: 'workspace/admin-page',
-            element: <Admin />,
-               children: [
-                  { index: true, element: <UserListAdmin /> },
-                  { path: 'users', element: <UserListAdmin /> },
-                  { path: 'events', element: <EventListAdmin /> },
-                  { path: 'projects', element: <ProjectListAdmin /> },
-                  { path: 'reviews', element: <ReviewListAdmin /> },
-                  { path: 'role-manager', element: <RoleManagerAdmin /> },
-                ],
+            element: <Admin />
           },
           {
             path: 'workspace/profile',
@@ -92,11 +85,19 @@ const router = createBrowserRouter([
           },
           {
             path: 'workspace/events/:eventId',
-            element: <EventsDetails />, 
+            element: <EventCreate />, 
           },
           {
             path: 'workspace/events/edit/:eventId',
-            element: <EventsDetailsEdit />, 
+            element: <EventEdit />, 
+          },
+          {
+            path: 'workspace/events/create',
+            element: <CreateEventPage />, 
+          },
+          {
+            path: 'workspace/events/update',
+            element: <UpdateEventPage />, 
           },
           {
             path: 'workspace/reviews',
@@ -105,6 +106,10 @@ const router = createBrowserRouter([
           {
             path: 'workspace/instructions',
             element: <Instructions />, // Страница отзывов
+          },
+          {
+            path: 'workspace/test',
+            element: <Test />, // Страница отзывов
           },
         ],
       },

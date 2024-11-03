@@ -122,7 +122,7 @@ async def get_user_profile(
     raise HTTPException(status_code=400, detail="Укажите либо «details», либо «abbreviated» параметр")
 
 # Эндпоинт для обновления данных пользователя
-@router.put("/users/{user_id}/profile", response_model=dict)
+@router.patch("/users/{user_id}/profile", response_model=dict)
 async def update_user_profile(user_id: str, user_data: DataUserUpdate, token: dict = Depends(decode_jwt)):
     """
     Обновление информации о пользователе.
@@ -130,10 +130,25 @@ async def update_user_profile(user_id: str, user_data: DataUserUpdate, token: di
     await check_permissions(token, SERVICE_NAME, user_id=user_id)
 
     update_data = user_data.dict(exclude_unset=True)
-    result = await profile_data_collection.update_one({"user_id": user_id}, {"$set": update_data})
+
+    # Формируем точечное обновление
+    set_operations = {}
+    for key, value in update_data.items():
+        if isinstance(value, dict):
+            # Для вложенных словарей, создаем отдельные операции $set для каждого вложенного поля
+            for sub_key, sub_value in value.items():
+                set_operations[f"{key}.{sub_key}"] = sub_value
+        else:
+            set_operations[key] = value
+
+    # Применение точечного обновления
+    result = await profile_data_collection.update_one({"user_id": user_id}, {"$set": set_operations})
 
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
+
+    if result.modified_count == 0:
+        return {"message": "User data is already up-to-date"}
 
     return {"message": "User data successfully updated"}
 

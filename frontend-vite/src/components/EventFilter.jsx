@@ -1,16 +1,15 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { TextField, Box, Button, MenuItem } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
+import debounce from 'lodash.debounce';
 
-// Перечисление статусов мероприятий
 const EventStatus = {
-    COMPLETED: "Проведено",
-    IN_PROGRESS: "Проводится",
-    SCHEDULED: "Запланировано"
+  COMPLETED: "Проведено",
+  IN_PROGRESS: "Проводится",
+  SCHEDULED: "Запланировано"
 };
 
-// Компонент фильтра событий
 const EventFilter = ({ onFilter, onAddEvent }) => {
   const [filters, setFilters] = React.useState({
     full_title: '',
@@ -19,18 +18,21 @@ const EventFilter = ({ onFilter, onAddEvent }) => {
     event_status: '',
   });
 
-  // Обработчик изменения полей фильтра
+  // Обработчик изменения полей фильтра с обновлением состояния
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFilters((prevFilters) => ({ ...prevFilters, [name]: value }));
+    debouncedFilterChange({ ...filters, [name]: value });
   };
 
-  // Эффект для вызова функции фильтрации при изменении фильтров
-  React.useEffect(() => {
-    onFilter(filters);
-  }, [filters, onFilter]);
+  // Debounce для onFilter, вызываем его с задержкой
+  const debouncedFilterChange = useCallback(
+    debounce((updatedFilters) => {
+      onFilter(updatedFilters);
+    }, 300), // 300ms задержка
+    [onFilter]
+  );
 
-  // Массив для статусов мероприятий
   const statusOptions = [
     { value: '', label: 'Все' },
     { value: EventStatus.COMPLETED, label: EventStatus.COMPLETED },
@@ -101,7 +103,7 @@ const EventFilter = ({ onFilter, onAddEvent }) => {
       </Box>
       <Button
         color="primary"
-        onClick={onAddEvent} // Вызов функции открытия модального окна
+        onClick={onAddEvent}
         startIcon={<AddIcon />}
       >
         ДОБАВИТЬ МЕРОПРИЯТИЕ

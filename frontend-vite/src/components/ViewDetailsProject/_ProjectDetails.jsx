@@ -28,7 +28,11 @@ import MediaTab from './MediaTab';
 import ExpensesTab from './ExpensesTab';
 import SelfFinancingTab from './SelfFinancingTab';
 import AdditionalFilesTab from './AdditionalFilesTab';
-import ExpertReviews from './ExpertReviews';
+import ExpertReviewsTab from './ExpertReviews';
+import ListExpertReviewsTab from './ListExpertReviews';
+
+
+import RateReviewIcon from '@mui/icons-material/RateReview';
 
 // Конфигурация вкладок
 const tabConfig = [
@@ -39,9 +43,10 @@ const tabConfig = [
   { id: 'tab_calendar_plan', label: 'Календарный план', component: 'CalendarPlanTab' },
   { id: 'tab_media', label: 'Медиа', component: 'MediaTab' },
   { id: 'tab_expenses', label: 'Расходы', component: 'ExpensesTab' },
-  { id: 'tab_cofinancing', label: 'Софинансирование', component: 'SelfFinancingTab' },
+  { id: 'tab_cofinancing', label: 'Софинанс.', component: 'SelfFinancingTab' },
   { id: 'tab_additional_files', label: 'Доп. файлы', component: 'AdditionalFilesTab' },
-  { id: 'tab_expert_reviews', label: 'Оценка экспертов', component: 'ExpertReviews' },
+  { id: 'tab_list_expert_reviews', label: 'Рецензии', component: 'ListExpertReviewsTab' },
+  { id: 'tab_expert_reviews', label: 'Моя рецензия', component: 'ExpertReviewsTab' },
 ];
 
 // Главный компонент ProjectDetails
@@ -112,8 +117,10 @@ const ProjectDetails = () => {
         return <SelfFinancingTab data={tabData} />;
       case 'AdditionalFilesTab':
         return <AdditionalFilesTab data={tabData} />;
-      case 'ExpertReviews':
-        return <ExpertReviews data={tabData} />;
+      case 'ListExpertReviewsTab':
+        return <ListExpertReviewsTab data={tabData} />;
+      case 'ExpertReviewsTab':
+        return <ExpertReviewsTab data={tabData} />;
       default:
         return <Typography>Вкладка находится в разработке.</Typography>;
     }
