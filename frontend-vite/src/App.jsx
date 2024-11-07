@@ -44,7 +44,7 @@ const NAVIGATION = [
   },
   {
     segment: 'dashboard/workspace/reviews',
-    title: 'Проверки',
+    title: 'Оценка проектов',
     icon: <RateReviewIcon />, // Иконка для проверок
   },
   {

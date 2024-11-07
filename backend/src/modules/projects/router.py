@@ -11,6 +11,7 @@ from datetime import datetime
 
 # Импортируем необходимые схемы
 from src.modules.projects.schemas import (
+    UpdateAdditionalFilesRequest,
     ProjectFICPerson,
     ProjectDataTabs,
     AdditionalFiles,
@@ -192,6 +193,38 @@ async def get_project(project_id: str, token: dict = Depends(decode_jwt)):
     project["project_id"] = str(project["_id"])
     return ProjectFICPerson(**project)
 
+
+@router.patch("/projects/{project_id}/additional-files", status_code=204)
+async def update_additional_files(
+        project_id: str,
+        request: UpdateAdditionalFilesRequest,
+        token: dict = Depends(decode_jwt)
+):
+    await check_permissions(token, SERVICE_NAME, project_id=project_id)
+
+    try:
+        obj_id = ObjectId(project_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Неверный формат project_id")
+
+    existing_project = await projects_data_collection.find_one({"_id": obj_id})
+    if not existing_project:
+        raise HTTPException(status_code=404, detail="Проект не найден")
+
+    # Преобразование объектов Pydantic в словари
+    additional_files_dict = [file.dict() for file in request.additional_files]
+
+    update_dict = {
+        "project_data_tabs.tab_additional_files_KG": additional_files_dict,
+        "update_date": datetime.utcnow()
+    }
+
+    await projects_data_collection.update_one(
+        {"_id": obj_id},
+        {"$set": update_dict}
+    )
+
+    return {"detail": "Дополнительные файлы успешно обновлены"}
 
 # Эндпоинт для обновления проекта
 @router.patch("/projects/{project_id}", status_code=204)

@@ -17,8 +17,8 @@ class CriteriaEvaluation(BaseModel):
 
 
 class ReviewCreate(BaseModel):
-    reviewer_id: str
-    project_id: str
+    reviewer_id: Optional[str] = None
+    project_id: Optional[str] = None
     criteria_evaluation: CriteriaEvaluation
     expert_comment: Optional[str] = None
 
@@ -30,6 +30,7 @@ class ReviewUpdate(BaseModel):
 class Review(BaseModel):
     review_id: str
     reviewer_id: str  # ID проверяющего
+    reviewer_full_name: Optional[str] = None
     project_id: str  # ID проекта
     create_date: Optional[datetime] = None  # Дата создания проверки
     update_date: Optional[datetime] = None  # Дата последнего обновления проверки

@@ -77,6 +77,7 @@ async def get_events(
         format: str = None,
         event_status: str = None,
         location: str = None,
+        event_publish: str = None,
         page: int = Query(1, ge=1),
         limit: int = Query(10, ge=1),
         token: dict = Depends(decode_jwt)
@@ -87,17 +88,32 @@ async def get_events(
     skip = (page - 1) * limit
     query = {}
 
+    # Фильтрация по полному названию мероприятия
     if full_title:
         query["event_full_title"] = {"$regex": full_title, "$options": "i"}
+
+    # Фильтрация по типу мероприятия, если не ALL
     if event_type:
         query["event_type"] = event_type
+
+    # Фильтрация по тегам
     if tags:
         tag_list = [tag.strip() for tag in tags.split(",")]
         query["event_tags"] = {"$in": tag_list}
+
+    # Фильтрация по формату мероприятия, если не ALL
     if format:
         query["event_format"] = format
+
+    # Фильтрация по статусу мероприятия, если не ALL
     if event_status:
         query["event_status"] = event_status
+
+    # Фильтрация по статусу мероприятия, если не ALL
+    if event_publish:
+        query["event_publish"] = event_publish
+
+    # Фильтрация по локации
     if location:
         query["event_venue"] = {"$regex": location, "$options": "i"}
 
@@ -109,6 +125,7 @@ async def get_events(
         event['id_event'] = str(event['_id'])
 
     return {"total": total_events, "events": [EventReduced(**event) for event in events]}
+
 
 
 # Эндпоинт для получения мероприятия по ID
@@ -143,113 +160,6 @@ async def delete_event(event_id: str, token: dict = Depends(decode_jwt)):
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Мероприятие не найдено")
 
-# Эндпоинт для назначения руководителя
-@router.patch("/events/{event_id}/manager/{user_id}", status_code=204)
-async def assign_manager(event_id: str, user_id: str, token: dict = Depends(decode_jwt)):
-    """
-    Назначение руководителя для мероприятия.
-    - **event_id**: ID мероприятия.
-    - **user_id**: ID пользователя, которого назначают.
-    """
-    await check_permissions(token, operation_type="high-level_operation")
-
-    # Поиск мероприятия
-    event = await events_data_collection.find_one({"_id": ObjectId(event_id)})
-    if not event:
-        raise HTTPException(status_code=404, detail="Мероприятие не найдено")
-
-    # Проверка, есть ли уже менеджер с таким user_id
-    manager_found = False
-    for manager in event.get("managers", []):
-        if user_id in manager.get("managers_user_id", []):  # Используйте get для избежания KeyError
-            manager_found = True
-            break
-
-    if not manager_found:
-        # Если менеджер не найден, добавляем user_id в существующий объект или создаем новый
-        result = await events_data_collection.update_one(
-            {"_id": ObjectId(event_id)},
-            {"$addToSet": {"managers.$[manager].managers_user_id": user_id}},  # Исправлено на managers_user_id
-            array_filters=[{"manager.managers_user_id": {"$ne": user_id}}]
-        )
-
-        if result.modified_count == 0:
-            # Если ни один объект не был обновлён, добавляем нового менеджера
-            await events_data_collection.update_one(
-                {"_id": ObjectId(event_id)},
-                {"$addToSet": {"managers": {"managers_user_id": [user_id]}}}  # Исправлено на managers_user_id
-            )
-
-# Эндпоинт для удаления руководителя
-@router.delete("/events/{event_id}/manager/{user_id}", status_code=204)
-async def delete_manager(event_id: str, user_id: str, token: dict = Depends(decode_jwt)):
-    """
-    Удаление руководителя из мероприятия.
-    - **event_id**: ID мероприятия.
-    - **user_id**: ID руководителя.
-    """
-    await check_permissions(token, operation_type="high-level_operation")
-
-    result = await events_data_collection.update_one(
-        {"_id": ObjectId(event_id)},
-        {"$pull": {"managers.$[].managers_user_id": user_id}}  # Удаляем user_id из всех managers
-    )
-    if result.modified_count == 0:
-        raise HTTPException(status_code=404, detail="Менеджер не найден или мероприятие не найдено")
-
-# Эндпоинт для назначения эксперта
-@router.patch("/events/{event_id}/expert/{user_id}", status_code=204)
-async def assign_expert(event_id: str, user_id: str, token: dict = Depends(decode_jwt)):
-    """
-    Назначение эксперта для мероприятия.
-    - **event_id**: ID мероприятия.
-    - **user_id**: ID пользователя, которого назначают.
-    """
-    await check_permissions(token, SERVICE_NAME, event_id=event_id)
-
-    # Поиск мероприятия
-    event = await events_data_collection.find_one({"_id": ObjectId(event_id)})
-    if not event:
-        raise HTTPException(status_code=404, detail="Мероприятие не найдено")
-
-    # Проверка, есть ли уже эксперт с таким user_id
-    expert_found = False
-    for expert in event.get("experts", []):
-        if user_id in expert.get("experts_user_id", []):  # Используйте get для избежания KeyError
-            expert_found = True
-            break
-
-    if not expert_found:
-        # Если эксперт не найден, добавляем user_id в существующий объект или создаем новый
-        result = await events_data_collection.update_one(
-            {"_id": ObjectId(event_id)},
-            {"$addToSet": {"experts.$[expert].experts_user_id": user_id}},
-            array_filters=[{"expert.experts_user_id": {"$ne": user_id}}]
-        )
-
-        if result.modified_count == 0:
-            # Если ни один объект не был обновлён, добавляем нового эксперта
-            await events_data_collection.update_one(
-                {"_id": ObjectId(event_id)},
-                {"$addToSet": {"experts": {"experts_user_id": [user_id]}}}
-            )
-
-# Эндпоинт для удаления эксперта
-@router.delete("/events/{event_id}/expert/{user_id}", status_code=204)
-async def delete_expert(event_id: str, user_id: str, token: dict = Depends(decode_jwt)):
-    """
-    Удаление эксперта из мероприятия.
-    - **event_id**: ID мероприятия.
-    - **user_id**: ID эксперта.
-    """
-    await check_permissions(token, SERVICE_NAME, event_id=event_id)
-
-    result = await events_data_collection.update_one(
-        {"_id": ObjectId(event_id)},
-        {"$pull": {"experts.$[].experts_user_id": user_id}}  # Удаляем user_id из всех experts
-    )
-    if result.modified_count == 0:
-        raise HTTPException(status_code=404, detail="Эксперт не найден или мероприятие не найдено")
 
 # Эндпоинт для просмотра зрителей мероприятия
 @router.get("/events/{event_id}/spectators", response_model=List[UserSummary])
@@ -319,7 +229,7 @@ async def register_spectator(event_id: str, user_id: str, token: dict = Depends(
                 {"$addToSet": {"spectators": {"spectator_user_id": [user_id]}}}
             )
 
-# Эндпоинт для получения удаления зрителя мероприятия
+# Эндпоинт для удаления зрителя мероприятия
 @router.delete("/events/{event_id}/spectator/{user_id}", status_code=204)
 async def delete_spectator(event_id: str, user_id: str, token: dict = Depends(decode_jwt)):
     """

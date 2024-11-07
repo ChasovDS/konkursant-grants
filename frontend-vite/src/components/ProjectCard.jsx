@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, Typography, Button, Box, Chip, Avatar } from '@mui/material';
+import { Card, CardContent, Typography, Button, Box, Chip } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Edit, Archive, Delete } from '@mui/icons-material';
 import EventIcon from '@mui/icons-material/Event';
-import StarIcon from '@mui/icons-material/Star';
 import DeleteProjectModal from './DeleteProjectModal';
 
 const AnimatedCard = styled(Card)(({ theme }) => ({
@@ -46,6 +45,10 @@ const ProjectCard = ({ project, onProjectCreated }) => {
 
   const handleViewProject = () => {
     navigate(`/dashboard/workspace/projects/${project_id}`);
+  };
+
+  const handleViewEvents = () => {
+    navigate(`/dashboard/workspace/events`);
   };
 
   const handleOpenProject = () => {
@@ -116,6 +119,7 @@ const ProjectCard = ({ project, onProjectCreated }) => {
           color="primary"
           onClick={handleOpenProject}
           startIcon={<Edit />}
+          disabled
         >
           Редактировать проект
         </CustomButton>
@@ -123,27 +127,22 @@ const ProjectCard = ({ project, onProjectCreated }) => {
           color="primary"
           onClick={handleArchiveProject}
           startIcon={<Archive />}
+          disabled
         >
           Архивировать проект
         </CustomButton>
         <CustomButton
           color="primary"
           startIcon={<EventIcon />}
+          onClick={handleViewEvents}
+          
         >
           Подать проект на мероприятие
         </CustomButton>
         <CustomButton
-          color="primary"
-          onClick={handleRateProject}
-          startIcon={<StarIcon />}
-        >
-          Оценить проект
-        </CustomButton>
-        <CustomButton
-          color="default"
+          color="error"
           onClick={handleOpenDeleteModal}
           startIcon={<Delete />}
-          sx={{ color: 'gray' }}
         >
           Удалить проект
         </CustomButton>

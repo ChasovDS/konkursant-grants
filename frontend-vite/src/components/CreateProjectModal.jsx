@@ -53,7 +53,7 @@ const style = {
 
 const CreateProjectModal = ({ open, handleClose, onProjectCreated }) => {
   const [file, setFile] = useState(null);
-  const [isEmptyProject, setIsEmptyProject] = useState(true);
+  const [isEmptyProject, setIsEmptyProject] = useState(false); // Изменено на false (ДОСТУПНОСТЬ ВЫБОРА РЕЖИМА СОЗДАНИЯ ПРОЕКТА)
   const [templateType, setTemplateType] = useState('ФИЗ_ЛИЦО');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -102,7 +102,7 @@ const CreateProjectModal = ({ open, handleClose, onProjectCreated }) => {
   // Функция для сброса состояния формы
   const resetForm = () => {
     setFile(null);
-    setIsEmptyProject(true);
+    setIsEmptyProject(false); // Изменено на false (ДОСТУПНОСТЬ ВЫБОРА РЕЖИМА СОЗДАНИЯ ПРОЕКТА)
     setTemplateType('ФИЗ_ЛИЦО');
   };
 
@@ -131,7 +131,7 @@ const CreateProjectModal = ({ open, handleClose, onProjectCreated }) => {
           fullWidth
           sx={{ mb: 2 }}
         >
-          <ToggleButton value="empty" aria-label="empty project">
+          <ToggleButton value="empty" aria-label="empty project" disabled>
             <Description />
             Пустой проект
           </ToggleButton>

@@ -14,6 +14,11 @@ class RoleEnum(str, Enum):
 class RoleUpdate(BaseModel):
     role: RoleEnum
 
+class UserResponse(BaseModel):
+    user_id: str
+    user_full_name: str
+
+
 class DirectionEnum(str, Enum):
     SOP = "СОП"
     SPO = "СПО"
@@ -102,4 +107,6 @@ class DataUserUpdate(BaseModel):
     user_information: Optional[str] = None
     external_service_accounts: ExternalServiceAccountsUpdate
     squad_info: SquadInfo
+
+
 

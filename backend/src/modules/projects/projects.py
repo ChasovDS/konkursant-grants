@@ -77,9 +77,10 @@ class DataExtractor:
                 "tab_results": "",
                 "tab_calendar_plan": "",
                 "tab_media": "",
-                "tab_expenses":"",
+                "tab_expenses": "",
                 "tab_cofinancing": "",
-                "tab_additional_files": ""
+                "tab_additional_files": "",
+                "tab_additional_files_KG": []
             }
         }
 

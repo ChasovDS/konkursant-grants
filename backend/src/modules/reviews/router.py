@@ -5,7 +5,7 @@ from src.modules.auth.utils import create_jwt, decode_jwt
 from src.utils import check_permissions
 from datetime import datetime
 from bson import ObjectId
-from src.database import projects_data_collection, reviews_data_collection
+from src.database import projects_data_collection, reviews_data_collection, profile_data_collection
 
 router = APIRouter()
 
@@ -28,9 +28,10 @@ def calculate_total_score(criteria: CriteriaEvaluation) -> int:
         criteria.project_budget_realism
     )
 
-# Эндпоинт для создания новой проверки
+# Эндпоинт для создания нового отзыва
 @router.post("/reviews", response_model=Review)
-async def create_review(review: ReviewCreate, project_id: str, token: dict = Depends(decode_jwt)):
+async def create_review(review: ReviewCreate, token: dict = Depends(decode_jwt)):
+    project_id = review.project_id  # Теперь получаем project_id из review
     """
     Создание новой проверки.
     """
@@ -47,14 +48,16 @@ async def create_review(review: ReviewCreate, project_id: str, token: dict = Dep
     if existing_review:
         raise HTTPException(status_code=400, detail="Рецензент уже отправил рецензию на этот проект.")
 
+    data_user = await profile_data_collection.find_one({"user_id": reviewer_id})
     # Подготовка данных для вставки
     review_data = {
-        "reviewer_id": reviewer_id,  # ID проверяющего
-        "project_id": project_id,  # ID проекта
-        "create_date": datetime.utcnow(),  # Дата создания
-        "update_date": datetime.utcnow(),  # Дата обновления
-        "criteria_evaluation": review.criteria_evaluation.dict(),  # Оценка критериев
-        "expert_comment": review.expert_comment  # Комментарий эксперта
+        "reviewer_full_name": data_user['full_name'],
+        "reviewer_id": reviewer_id,
+        "project_id": project_id,
+        "create_date": datetime.utcnow(),
+        "update_date": datetime.utcnow(),
+        "criteria_evaluation": review.criteria_evaluation.dict(),
+        "expert_comment": review.expert_comment
     }
 
     # Вставка новой проверки в коллекцию
@@ -67,9 +70,9 @@ async def create_review(review: ReviewCreate, project_id: str, token: dict = Dep
     await projects_data_collection.update_one(
         {"_id": ObjectId(project_id)},
         {"$addToSet": {"reviews": {
-            "review_id": str(result.inserted_id),  # Используем ID вставленной проверки
+            "review_id": str(result.inserted_id),
             "expert_id": reviewer_id,
-            "score": total_score  # Общая оценка
+            "score": total_score
         }}}
     )
 
@@ -78,7 +81,6 @@ async def create_review(review: ReviewCreate, project_id: str, token: dict = Dep
     new_review["review_id"] = str(result.inserted_id)
 
     return Review(**new_review)
-
 
 # Эндпоинт для получения списка проверок
 @router.get("/reviews", response_model=List[Review])
@@ -104,6 +106,29 @@ async def get_reviews_by_project(project_id: str, token: dict = Depends(decode_j
     reviews_cursor = reviews_data_collection.find({"project_id": project_id})
     reviews = await reviews_cursor.to_list(length=100)
     return [Review(**review, review_id=str(review["_id"])) for review in reviews]
+
+
+# Эндпоинт для получения списка всех проверок конкретного эксперта по ID проекта.
+@router.get("/reviews/expert/project/{project_id}", response_model=List[Review])
+async def get_reviews_by_expert_and_project( project_id: str, token: dict = Depends(decode_jwt)):
+    """
+    Получение списка всех проверок конкретного эксперта по ID проекта.
+    """
+    # Проверка прав доступа
+    await check_permissions(token, operation_type="high-level_review_operation")
+
+    reviewer_id = token.get("user_id")
+
+    # Поиск проверок по reviewer_id (эксперт) и project_id
+    reviews_cursor = reviews_data_collection.find({"reviewer_id": reviewer_id, "project_id": project_id})
+    reviews = await reviews_cursor.to_list(length=100)
+
+    if not reviews:
+        raise HTTPException(status_code=404, detail="Проверки от данного эксперта для указанного проекта не найдены.")
+
+    # Возвращаем список проверок
+    return [Review(**review, review_id=str(review["_id"])) for review in reviews]
+
 
 
 # Эндпоинт для получения информации о конкретной проверке по ID

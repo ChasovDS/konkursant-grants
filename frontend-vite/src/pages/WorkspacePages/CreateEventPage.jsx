@@ -2,13 +2,17 @@
 import React from 'react';
 import EventForm from '../../components/ComponentsEvents/EventForm';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 
 const CreateEventPage = () => {
+  // Получаем JWT-токен из куки
   const jwtToken = Cookies.get('auth_token');
+  const navigate = useNavigate();
 
+  // Функция для подготовки данных события перед отправкой на сервер
   const prepareEventData = (eventData) => ({
-    event_logo: "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/62335d27-96cc-4e9f-a444-af131db1bf1e/original=true,quality=90/37047996.jpeg",  // ВРЕМЕННО КАК ЗАГЛУШКА
+    event_logo: eventData.logoBASE,
     event_full_title: eventData.title,
     event_type: eventData.type,
     event_format: eventData.format,
@@ -27,45 +31,43 @@ const CreateEventPage = () => {
     event_experts: eventData.experts,
   });
 
+  // Функция для сохранения черновика события
   const handleSaveDraft = async (eventData) => {
     const eventDetails = prepareEventData(eventData);
-    eventDetails.event_publish = 'draft';
-    console.log("Значения 2 ", eventDetails)
-
+    eventDetails.event_publish = 'BLACKWELL'; // Устанавливаем статус "черновик"
+    console.log("Данные для черновика: ", eventDetails);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/v1/events', {
-        method: 'POST',
+      const response = await axios.post('http://127.0.0.1:8000/api/v1/events', eventDetails, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${jwtToken}`,
         },
-        body: JSON.stringify(eventDetails),
       });
-      if (!response.ok) throw new Error('Не удалось сохранить черновик');
-      console.log('Черновик сохранен');
+      console.log('Черновик сохранен:', response.data);
+      navigate('/dashboard/workspace/events'); // Переадресация на страницу событий
     } catch (error) {
-      console.error(error.message);
+      console.error('Ошибка при сохранении черновика:', error.response?.data || error.message);
     }
   };
 
-  const handlePublish = async (eventData, tags, description, logo) => {
-    const eventDetails = prepareEventData(eventData, tags, description, logo);
-    eventDetails.event_publish = 'publish';
+  // Функция для публикации события
+  const handlePublish = async (eventData) => {
+    const eventDetails = prepareEventData(eventData);
+    eventDetails.event_publish = 'READY_EVENT'; // Устанавливаем статус "опубликовано"
+    console.log("Данные для публикации: ", eventDetails);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/v1/events', {
-        method: 'POST',
+      const response = await axios.post('http://127.0.0.1:8000/api/v1/events', eventDetails, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${jwtToken}`,
         },
-        body: JSON.stringify(eventDetails),
       });
-      if (!response.ok) throw new Error('Не удалось опубликовать мероприятие');
-      console.log('Мероприятие опубликовано');
+      console.log('Мероприятие опубликовано:', response.data);
+      navigate('/dashboard/workspace/events'); // Переадресация на страницу событий
     } catch (error) {
-      console.error(error.message);
+      console.error('Ошибка при публикации мероприятия:', error.response?.data || error.message);
     }
   };
 

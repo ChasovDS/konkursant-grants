@@ -2,21 +2,85 @@ import React, { useCallback } from 'react';
 import { TextField, Box, Button, MenuItem } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
+import { useNavigate } from 'react-router-dom'; // Импортируем useNavigate
 import debounce from 'lodash.debounce';
 
-const EventStatus = {
-  COMPLETED: "Проведено",
-  IN_PROGRESS: "Проводится",
-  SCHEDULED: "Запланировано"
-};
 
-const EventFilter = ({ onFilter, onAddEvent }) => {
+
+
+
+  // Константы статусов мероприятия
+  const EventStatus = {
+    COMPLETED: "Проведено",
+    IN_PROGRESS: "Проводится",
+    SCHEDULED: "Запланировано",
+    CANCELED: "Отменено",
+  };
+
+  // Константы типов мероприятий (на русском языке)
+  const EventType = {
+
+    CONFERENCE: "Конференция",
+    TRAINING: "Тренинг",
+    GRANT_EVENT: "Грантовое мероприятие",
+  };
+
+  // Константы форматов мероприятия (на русском языке)
+  const EventFormat = {
+    ONLINE: "Онлайн",
+    OFFLINE: "Офлайн",
+    MIXED: "Смешанный",
+  };
+
+
+  // Константы релевантности мероприятия
+  const EventRelevance = {
+    READY_EVENT: "Чистовик",
+    BLACKWELL: "Черновик",
+  };
+
+  // Опции статусов для селектора
+  const statusOptions = Object.entries(EventStatus).map(([key, value]) => ({
+    value: key,
+    label: value,
+  }));
+
+  // Опции типов мероприятий
+  const eventTypeOptions = Object.entries(EventType).map(([key, value]) => ({
+    value: key,
+    label: value,
+  }));
+
+  // Опции форматов мероприятий
+  const eventFormatOptions = Object.entries(EventFormat).map(([key, value]) => ({
+    value: key,
+    label: value,
+  }));
+
+
+  // Опции релевантности для селектора
+  const relevanceOptions = Object.entries(EventRelevance).map(([key, value]) => ({
+    value: key,
+    label: value,
+  }));
+
+
+
+const EventFilter = ({ onFilter }) => {
   const [filters, setFilters] = React.useState({
     full_title: '',
     event_type: '',
     format: '',
     event_status: '',
+    event_publish: '',
   });
+
+  const navigate = useNavigate(); // Получаем функцию навигации
+
+  // Обработчик нажатия на кнопку
+  const onAddEvent = () => {
+    navigate('/dashboard/workspace/events/create'); // Переход на нужную страницу
+  };
 
   // Обработчик изменения полей фильтра с обновлением состояния
   const handleChange = (e) => {
@@ -33,12 +97,6 @@ const EventFilter = ({ onFilter, onAddEvent }) => {
     [onFilter]
   );
 
-  const statusOptions = [
-    { value: '', label: 'Все' },
-    { value: EventStatus.COMPLETED, label: EventStatus.COMPLETED },
-    { value: EventStatus.IN_PROGRESS, label: EventStatus.IN_PROGRESS },
-    { value: EventStatus.SCHEDULED, label: EventStatus.SCHEDULED },
-  ];
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', m: 2 }}>
@@ -66,11 +124,13 @@ const EventFilter = ({ onFilter, onAddEvent }) => {
           select
           value={filters.event_type}
           onChange={handleChange}
-          sx={{ minWidth: 150 }}
+          sx={{ minWidth: 150, display: 'none' }} // Скрытие элемента через стиль
         >
-          <MenuItem value="">Все</MenuItem>
-          <MenuItem value="тип1">Тип 1</MenuItem>
-          <MenuItem value="тип2">Тип 2</MenuItem>
+          {eventTypeOptions.map((option) => (
+          <MenuItem key={option.value} value={option.value}>
+            {option.label}
+          </MenuItem>
+        ))}
         </TextField>
         <TextField
           name="format"
@@ -81,9 +141,12 @@ const EventFilter = ({ onFilter, onAddEvent }) => {
           onChange={handleChange}
           sx={{ minWidth: 150 }}
         >
-          <MenuItem value="">Все</MenuItem>
-          <MenuItem value="онлайн">Онлайн</MenuItem>
-          <MenuItem value="оффлайн">Оффлайн</MenuItem>
+          <MenuItem value=""><em>Любой</em></MenuItem>
+            {eventFormatOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
         </TextField>
         <TextField
           name="event_status"
@@ -94,12 +157,30 @@ const EventFilter = ({ onFilter, onAddEvent }) => {
           onChange={handleChange}
           sx={{ minWidth: 150 }}
         >
+          <MenuItem value=""><em>Любой</em></MenuItem>
           {statusOptions.map((option) => (
             <MenuItem key={option.value} value={option.value}>
               {option.label}
             </MenuItem>
           ))}
         </TextField>
+        <TextField
+              name="event_publish"
+              label="Публикация"
+              size="small"
+              select
+              value={filters.event_publish}
+              onChange={handleChange}
+              sx={{ minWidth: 200 }}
+          >
+           <MenuItem value=""><em>Любые</em></MenuItem>
+              {relevanceOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                      
+                  </MenuItem>
+              ))}
+          </TextField>
       </Box>
       <Button
         color="primary"

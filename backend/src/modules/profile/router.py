@@ -3,13 +3,21 @@ from bson import ObjectId
 from typing import List, Optional, Union
 from src.modules.auth.utils import create_jwt, decode_jwt
 from src.utils import check_permissions
-from src.modules.profile.schemas import DataUserUpdate, RoleEnum, ProfileData, ExternalServiceAccounts, SquadInfo, UserSummary, RoleUpdate
+from src.modules.profile.schemas import DataUserUpdate, RoleEnum, ProfileData, ExternalServiceAccounts, SquadInfo, UserSummary, RoleUpdate, UserResponse
 from src.database import profile_data_collection, authorization_accounts_collection
 
 # Создаем экземпляр маршрутизатора
 router = APIRouter()
 
 SERVICE_NAME = "profile_service"
+
+
+
+
+
+
+
+
 
 
 
@@ -169,6 +177,7 @@ async def delete_user_profile(user_id: str, token: dict = Depends(decode_jwt)):
     return {"message": "User successfully deleted"}
 
 
+# Эндпоинт для назначения роли
 @router.patch("/user/role/{user_id}", response_model=dict)
 async def assign_user_role(
     user_id: str,
@@ -197,7 +206,32 @@ async def assign_user_role(
     return {"message": "Роль пользователя успешно обновлена", "user_id": user_id, "new_role": role}
 
 
+# Эндпоинт для получения списка пользователей по роли и ФИО
+@router.get("/users/role/{role_name}", response_model=List[UserResponse])
+async def get_users_by_role(
+    role_name: RoleEnum,
+    full_name: Optional[str] = Query(None),
+):
+    """
+    Получение списка пользователей с определенной ролью и возможностью поиска по ФИО.
+    """
+    # Создаем базовый запрос для поиска пользователей по роли
+    query = {"role_name": role_name}
 
+    # Добавляем фильтры по ФИО, если они указаны
+    if full_name:
+        query["full_name"] = {"$regex": full_name, "$options": "i"}
+
+    # Поиск пользователей в базе данных
+    users = await profile_data_collection.find(query).to_list(length=100)  # Ограничим до 100 пользователей
+
+    if not users:
+        raise HTTPException(status_code=404, detail="Пользователи с данной ролью не найдены")
+
+    # Формируем список ответов
+    user_list = [UserResponse(user_id=user["user_id"], user_full_name=user.get("full_name", "Не указано")) for user in users]
+
+    return user_list
 
 
 

@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Typography, Box, CircularProgress, Snackbar } from '@mui/material';
 import EventsList from '../../components/EventsList';
 import EventFilter from '../../components/EventFilter';
-import CreateEventModal from '../../components/CreateEventModal';
 import Paginate from '../../components/Paginate';
 import axios from 'axios';
 import Cookies from 'js-cookie';
@@ -13,7 +12,6 @@ const EventsPage = () => {
   const [page, setPage] = useState(1);
   const [totalEvents, setTotalEvents] = useState(0);
   const [filters, setFilters] = useState({});
-  const [modalOpen, setModalOpen] = useState(false);
   const [error, setError] = useState(null);
   const limit = 6;
 
@@ -59,7 +57,6 @@ const EventsPage = () => {
     <Box>
       <EventFilter 
         onFilter={handleFilter} 
-        onAddEvent={() => setModalOpen(true)} 
       />
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
@@ -83,11 +80,6 @@ const EventsPage = () => {
           )}
         </>
       )}
-      <CreateEventModal 
-        open={modalOpen} 
-        onClose={() => setModalOpen(false)} 
-        fetchEvents={fetchEvents} 
-      />
       <Snackbar
         open={Boolean(error)}
         autoHideDuration={6000}

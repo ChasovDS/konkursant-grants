@@ -23,8 +23,7 @@ import Test from './components/ComponentsEvents/test';
 
 import UserProfile from './components/workspace/UserProfile'; 
 
-import EventCreate from './components/ComponentsEvents/_EventCreate'; 
-import EventEdit from './components/ComponentsEvents/_EventEdit';
+import EventDetailsPage from './components/ComponentsEvents/_EventDetailsPage'; 
 
 import ProjectDetails from './components/ViewDetailsProject/_ProjectDetails.jsx'; 
 
@@ -85,11 +84,11 @@ const router = createBrowserRouter([
           },
           {
             path: 'workspace/events/:eventId',
-            element: <EventCreate />, 
+            element: <EventDetailsPage />, 
           },
           {
             path: 'workspace/events/edit/:eventId',
-            element: <EventEdit />, 
+            element: <EventDetailsPage />, 
           },
           {
             path: 'workspace/events/create',

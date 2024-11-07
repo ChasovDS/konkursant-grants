@@ -175,6 +175,7 @@ class ProjectDataTabs(BaseModel):
     tab_expenses: Optional[Expense] = None  # Расходы
     tab_cofinancing: Optional[Cofinancing] = None  # Софинансирование
     tab_additional_files: Optional[List[AdditionalFiles]] = None  # Дополнительные файлы
+    tab_additional_files_KG: Optional[List[AdditionalFiles]] = None  # Дополнительные файлы
 
 # Модель для проверки
 class Review(BaseModel):
@@ -229,6 +230,8 @@ class SectionsToUpdate(BaseModel):
     tab_cofinancing: Optional[bool] = False  # Вкладка "Софинансирование"
     tab_additional_files: Optional[bool] = False  # Вкладка "Доп. Файлы"
 
+class UpdateAdditionalFilesRequest(BaseModel):
+    additional_files: List[AdditionalFiles] = None
 
 class ProjectData(BaseModel):
     author_name: str
