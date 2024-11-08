@@ -8,6 +8,13 @@ class EventUserData(BaseModel):
     user_id: constr(min_length=1) = Field(..., description="ID Пользователя")
     user_full_name: constr(min_length=1) = Field(..., description="ФИО Пользователя")
 
+class EventParticipantsData(BaseModel):
+    user_id: constr(min_length=1) = Field(..., description="ID Пользователя")
+    user_full_name: constr(min_length=1) = Field(..., description="ФИО Пользователя")
+    projects_id: constr(min_length=1) = Field(..., description="ID Проекта")
+    project_name: constr(min_length=1) = Field(..., description="Название Проекта")
+
+
 
 class EventBase(BaseModel):
     event_creator: str = Field(..., description="Создатель мероприятия")
@@ -32,7 +39,7 @@ class EventBase(BaseModel):
     event_experts: List[EventUserData] = Field(default_factory=list, description="Эксперты мероприятия")
 
     event_spectators: List[EventUserData] = Field(default_factory=list, description="Зрители мероприятия")
-    event_participants: List[EventUserData] = Field(default_factory=list, description="Участники мероприятия")
+    event_participants: List[EventParticipantsData] = Field(default_factory=list, description="Участники мероприятия")
 
 
 

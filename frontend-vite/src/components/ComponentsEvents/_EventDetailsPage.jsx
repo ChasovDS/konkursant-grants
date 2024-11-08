@@ -6,12 +6,9 @@ import {
   Box,
   Typography,
   CircularProgress,
-  Avatar,
   Stack,
   Chip,
   Grid,
-  Select,
-  MenuItem,
   Button,
   CardMedia,
   Card,
@@ -23,13 +20,9 @@ import {
   Link as MuiLink,
 } from "@mui/material";
 
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import InfoIcon from "@mui/icons-material/Info";
 import FeedbackIcon from "@mui/icons-material/Feedback";
-import EventIcon from "@mui/icons-material/Event";
 import PersonIcon from "@mui/icons-material/Person";
 import TagIcon from "@mui/icons-material/Tag";
-import PeopleIcon from "@mui/icons-material/People";
 import EventNoteIcon from "@mui/icons-material/EventNote"; // Для типа мероприятия
 import DescriptionIcon from "@mui/icons-material/Description"; // Для формата мероприятия
 import CheckCircleIcon from "@mui/icons-material/CheckCircle"; // Для статуса мероприятия
@@ -37,18 +30,13 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd"; // Для участ�
 import axios from "axios";
 import Cookies from "js-cookie";
 
+import ProjectAssignment from "./ProjectAssignment"; // Импортируем новый компонент
+
 const EventDetailsPage = () => {
   const { eventId } = useParams();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState("");
-  const [project, setProject] = useState("");
-  const [projects, setProjects] = useState([
-    "Project A",
-    "Project B",
-    "Project C",
-  ]);
-  const [participantMode, setParticipantMode] = useState(false);
   const [rating, setRating] = useState(0);
 
   useEffect(() => {
@@ -81,6 +69,30 @@ const EventDetailsPage = () => {
     fetchEvent();
   }, [eventId]);
 
+  // Функция для обновления участников мероприятия
+  const handleParticipantsUpdate = async () => {
+    const jwtToken = Cookies.get("auth_token");
+    if (!jwtToken) {
+      console.error("Токен авторизации отсутствует");
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `http://127.0.0.1:8000/api/v1/events/${eventId}`,
+        {
+          headers: { Authorization: `Bearer ${jwtToken}` },
+        }
+      );
+      setEvent(response.data); // Обновляем состояние с новыми данными
+    } catch (error) {
+      console.error(
+        "Ошибка при обновлении участников мероприятия:",
+        error.response?.data || error.message
+      );
+    }
+  };
+
   if (loading) {
     return (
       <CircularProgress sx={{ display: "block", margin: "auto", mt: 5 }} />
@@ -95,18 +107,10 @@ const EventDetailsPage = () => {
     );
   }
 
-  const handleProjectSubmit = () => {
-    console.log("Проект подан:", project);
-  };
-
   const handleFeedbackSubmit = () => {
     console.log("Отзыв отправлен:", feedback, "Рейтинг:", rating);
     setFeedback("");
     setRating(0);
-  };
-
-  const handleParticipantRegister = () => {
-    setParticipantMode(true);
   };
 
   // Константы типов участников (на русском языке)
@@ -152,9 +156,9 @@ const EventDetailsPage = () => {
       </Breadcrumbs>
 
       <Box sx={{ padding: 2, margin: "auto" }}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={4}>
-            <Card>
+        <Grid container spacing={2}  >
+          <Grid item xs={12} md={4 }>
+            <Card >
               <CardMedia
                 component="img"
                 height="240" // Высота карточки
@@ -171,12 +175,12 @@ const EventDetailsPage = () => {
                 <Typography variant="body2" color="textSecondary">
                   {event.event_organizer || "Организатор не указан"}
                 </Typography>
-                <Divider sx={{ margin: "10px 0" }} />
+                <Divider sx={{ margin: "10px 0", bgcolor: 'grey', }} />
                 <Typography variant="h7">Место проведения:</Typography>
                 <Typography variant="body2" color="textSecondary">
                   {event.event_venue || "Не указано"}
                 </Typography>
-                <Divider sx={{ margin: "10px 0" }} />
+                <Divider sx={{ margin: "10px 0", bgcolor: 'grey', }} />
                 <Typography variant="h7">Информационные ресурсы:</Typography>
 
                 {event.event_resources ? (
@@ -186,7 +190,7 @@ const EventDetailsPage = () => {
                 ) : (
                   <Typography>Ресурсы не указаны</Typography>
                 )}
-                <Divider sx={{ margin: "10px 0" }} />
+                <Divider sx={{ margin: "10px 0", bgcolor: 'grey', }} />
                 <Typography variant="h7">
                   Начало и окончание мероприятия:
                 </Typography>
@@ -212,7 +216,7 @@ const EventDetailsPage = () => {
           </Grid>
 
           <Grid item xs={12} sm={8}>
-            <Card>
+
               <CardContent>
                 <Typography variant="h5" align="left" sx={{ mb: 2 }}>
                   {event.event_full_title || "Название мероприятия не указано"}
@@ -270,6 +274,7 @@ const EventDetailsPage = () => {
                   <Typography sx={{ mt: 2 }}>Теги не указаны</Typography>
                 )}
                 <Divider sx={{ margin: "10px 0" }} />
+                
                 <Box>
                   <Typography variant="h6">О мероприятии</Typography>
                   <Typography
@@ -338,8 +343,8 @@ const EventDetailsPage = () => {
                   </Grid>
                 </Box>
               </CardContent>
-            </Card>
           </Grid>
+  
         </Grid>
 
         <Box
@@ -350,48 +355,16 @@ const EventDetailsPage = () => {
             borderRadius: "12px",
           }}
         >
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h5">Запись на мероприятие</Typography>
+          <Typography variant="h6">Ваш проект на мероприятии:</Typography>
+          <ProjectAssignment
+            eventId={eventId}
+            onParticipantsUpdate={handleParticipantsUpdate} // Передаем обработчик обновления участников
+          />
 
-            <Stack
-              direction="row"
-              spacing={2}
-              alignItems="center"
-              sx={{ mt: 1 }}
-            >
-              <Select
-                value={project}
-                fullWidth
-                onChange={(e) => setProject(e.target.value)}
-                displayEmpty
-                size="small"
-                sx={{ borderRadius: "8px" }}
-              >
-                <MenuItem value="" disabled>
-                  Выберите проект
-                </MenuItem>
-                {projects.map((proj, index) => (
-                  <MenuItem key={index} value={proj}>
-                    {proj}
-                  </MenuItem>
-                ))}
-              </Select>
-              <Button
-                variant="outlined"
-                color="primary"
-                disabled={!project}
-                onClick={handleProjectSubmit}
-                fullWidth
-                sx={{ padding: "8px 16px", borderRadius: "8px" }}
-              >
-                Подать проект на мероприятие
-              </Button>
-            </Stack>
-          </Box>
           <Box
             sx={{
               p: 3,
-              mb: 3,
+              my: 3,
               border: "1px solid #e0e0e0",
               borderRadius: "12px",
             }}
@@ -408,10 +381,8 @@ const EventDetailsPage = () => {
                   <Chip
                     key={participant.user_id}
                     label={participant.user_full_name}
-                    avatar={<Avatar>{participant.user_full_name[0]}</Avatar>}
+                    icon={<PersonIcon />}
                     sx={{
-                      backgroundColor: "#e3f2fd",
-                      color: "#1976d2",
                       borderRadius: "8px",
                     }}
                   />

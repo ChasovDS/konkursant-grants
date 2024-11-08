@@ -16,15 +16,11 @@ import ProjectsPage from './pages/WorkspacePages/ProjectsPage';
 import EventsPage from './pages/WorkspacePages/EventsPage';
 import CreateEventPage from './pages/WorkspacePages/CreateEventPage';
 import UpdateEventPage from './pages/WorkspacePages/UpdateEventPage';
-
-import Reviews from './components/workspace/Reviews';
-
+import Reviews from './pages/WorkspacePages/ReviewPage';
+import ProjectsList from './pages/WorkspacePages/ProjectsList';
 import Test from './components/ComponentsEvents/test'; 
-
 import UserProfile from './components/workspace/UserProfile'; 
-
 import EventDetailsPage from './components/ComponentsEvents/_EventDetailsPage'; 
-
 import ProjectDetails from './components/ViewDetailsProject/_ProjectDetails.jsx'; 
 
 import NotFound from './pages/NotFound'; // Страница 404
@@ -101,6 +97,10 @@ const router = createBrowserRouter([
           {
             path: 'workspace/reviews',
             element: <Reviews />, // Страница отзывов
+          },
+          {
+            path: 'workspace/reviews/:eventId/projects',
+            element: <ProjectsList />, 
           },
           {
             path: 'workspace/instructions',

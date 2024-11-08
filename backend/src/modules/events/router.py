@@ -161,6 +161,8 @@ async def delete_event(event_id: str, token: dict = Depends(decode_jwt)):
         raise HTTPException(status_code=404, detail="Мероприятие не найдено")
 
 
+
+
 # Эндпоинт для просмотра зрителей мероприятия
 @router.get("/events/{event_id}/spectators", response_model=List[UserSummary])
 async def get_spectators(event_id: str, token: dict = Depends(decode_jwt)):
@@ -248,36 +250,6 @@ async def delete_spectator(event_id: str, user_id: str, token: dict = Depends(de
         raise HTTPException(status_code=404, detail="Зритель не найден или мероприятие не найдено")
 
 
-# Эндпоинт для получения всех участников конкретного мероприятия
-@router.get("/events/{event_id}/participants", response_model=List[UserSummary])
-async def get_participants(event_id: str, token: dict = Depends(decode_jwt)):
-    """
-    Получение списка участников для конкретного мероприятия по его ID.
-    - **event_id**: ID мероприятия.
-    """
-    # Проверка прав доступа
-    await check_permissions(token)
-
-    # Поиск мероприятия в базе данных
-    event = await events_data_collection.find_one({"_id": ObjectId(event_id)})
-    if not event:
-        raise HTTPException(status_code=404, detail="Мероприятие не найдено")
-
-    # Получение уникальных user_id участников
-    participant_user_ids = {participant["user_id"] for participant in event.get("participants", [])}
-
-    # Фильтрация некорректных идентификаторов
-    participant_user_ids = [user_id for user_id in participant_user_ids if isinstance(user_id, str)]
-
-    if not participant_user_ids:
-        raise HTTPException(status_code=404, detail="Нет участников для данного мероприятия.")
-
-    # Получаем пользователей асинхронно
-    data_users = await profile_data_collection.find({"user_id": {"$in": participant_user_ids}}).to_list(length=None)
-
-    # Создаем список UserSummary
-    return [UserSummary(**user) for user in data_users]
-
 # Эндпоинт для получения всех проектов конкретного мероприятия
 @router.get("/events/{event_id}/projects", response_model=List[ProjectFICPersonSummary])
 async def get_projects_by_event(event_id: str, token: dict = Depends(decode_jwt)):
@@ -293,9 +265,10 @@ async def get_projects_by_event(event_id: str, token: dict = Depends(decode_jwt)
         raise HTTPException(status_code=404, detail="Мероприятие не найдено")
 
     # Получение списка проектов, связанных с мероприятием
-    projects_ids = event.get("participants", [])
-    project_ids_list = [project.get("projects_id", []) for project in projects_ids]  # Получаем только существующие проекты
-    project_ids_flat = [item for sublist in project_ids_list for item in sublist]  # Разворачиваем список
+    participants = event.get("event_participants", [])
+
+    # Извлечение проектов из участников
+    project_ids_flat = [participant["projects_id"] for participant in participants if "projects_id" in participant]
 
     # Фильтрация некорректных идентификаторов
     valid_project_ids = [pid for pid in project_ids_flat if ObjectId.is_valid(pid)]
@@ -316,96 +289,104 @@ async def get_projects_by_event(event_id: str, token: dict = Depends(decode_jwt)
 
     return [ProjectFICPersonSummary(**project) for project in projects]
 
-# Эндпоинт добавление проекта в мероприятие и обновление участника.
+# Эндпоинт для получения мероприятий, где пользователь назначен экспертом
+@router.get("/events/expert/list", response_model=List[EventReduced])
+async def get_events_as_expert(token: dict = Depends(decode_jwt)):
+    """
+    Получение списка мероприятий, где пользователь назначен экспертом.
+    """
+    # Получаем user_id из токена
+    user_id = token.get("user_id")
+
+    # Проверка, что user_id существует
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Не удалось извлечь user_id из токена.")
+
+    # Поиск мероприятий, где пользователь указан как эксперт
+    query = {"event_experts": {"$elemMatch": {"user_id": user_id}}}
+    events = await events_data_collection.find(query).to_list(length=None)
+
+    # Проверка наличия мероприятий
+    if not events:
+        raise HTTPException(status_code=404, detail="Нет мероприятий, где вы назначены экспертом.")
+
+    # Добавление id_event к мероприятиям
+    for event in events:
+        event['id_event'] = str(event['_id'])
+
+    return [EventReduced(**event) for event in events]
+
+
+# Эндпоинт для получения всех участников конкретного мероприятия
+@router.get("/events/{event_id}/participants", response_model=List[UserSummary])
+async def get_participants(event_id: str, token: dict = Depends(decode_jwt)):
+    await check_permissions(token)
+
+    event = await events_data_collection.find_one({"_id": ObjectId(event_id)})
+    if not event:
+        raise HTTPException(status_code=404, detail="Мероприятие не найдено")
+
+    participant_user_ids = {participant["user_id"] for participant in event.get("event_participants", [])}
+
+    participant_user_ids = [user_id for user_id in participant_user_ids if isinstance(user_id, str)]
+
+    if not participant_user_ids:
+        raise HTTPException(status_code=404, detail="Нет участников для данного мероприятия.")
+
+    data_users = await profile_data_collection.find({"user_id": {"$in": participant_user_ids}}).to_list(length=None)
+
+    return [UserSummary(**user) for user in data_users]
+
+
+
+# Эндпоинт добавления проекта в мероприятие и обновления участника.
 @router.patch("/events/{event_id}/project/{project_id}", status_code=204)
 async def registration_project_to_event(event_id: str, project_id: str, token: dict = Depends(decode_jwt)):
-    """
-    Добавление проекта в мероприятие и обновление участника.
-    - **event_id**: ID мероприятия.
-    - **project_id**: ID проекта.
-    """
-    await check_permissions(token, SERVICE_NAME, project_id=project_id)
+    await check_permissions(token)
 
-    # Получение author_id из проекта
     project = await projects_data_collection.find_one({"_id": ObjectId(project_id)})
     if not project:
         raise HTTPException(status_code=404, detail="Проект не найден")
 
     author_id = project.get("author_id")
+    author_name = project.get("author_name")
+    project_name = project.get("project_name")
+
     if not author_id:
         raise HTTPException(status_code=400, detail="Автор проекта не определен")
 
-    # Попытка обновить участника
     result = await events_data_collection.update_one(
-        {"_id": ObjectId(event_id), "participants.user_id": author_id},
-        {"$addToSet": {"participants.$.projects_id": project_id}}
+        {"_id": ObjectId(event_id), "event_participants.user_id": author_id},
+        {"$addToSet": {"event_participants.$.projects_id": project_id}}
     )
 
-    # Если участник не найден, добавляем его с проектом
     if result.modified_count == 0:
-        # Создаем нового участника
         new_participant = {
             "user_id": author_id,
-            "projects_id": [project_id]  # Добавляем проект в новый массив
+            "user_full_name": author_name,
+            "projects_id": project_id,
+            "project_name": project_name,
         }
 
-        # Обновляем мероприятие, добавляя нового участника
         update_result = await events_data_collection.update_one(
             {"_id": ObjectId(event_id)},
-            {"$addToSet": {"participants": new_participant}}
+            {"$addToSet": {"event_participants": new_participant}}
         )
 
         if update_result.modified_count == 0:
             raise HTTPException(status_code=400, detail="Не удалось добавить проект и участника")
 
-# Эндпоинт удаления проекта из мероприятия.
+
+# Эндпоинт удаления участника с указанным projects_id из мероприятия
 @router.delete("/events/{event_id}/project/{project_id}", status_code=204)
 async def delete_project_from_event(event_id: str, project_id: str, token: dict = Depends(decode_jwt)):
-    """
-    Удаление проекта из мероприятия и обновление участника.
-    - **event_id**: ID мероприятия.
-    - **project_id**: ID проекта.
-    """
-    await check_permissions(token, SERVICE_NAME, project_id=project_id)
+    await check_permissions(token)
 
-    # Получение author_id из проекта
-    project = await projects_data_collection.find_one({"_id": ObjectId(project_id)})
-    if not project:
-        raise HTTPException(status_code=404, detail="Проект не найден")
-
-    author_id = project.get("author_id")
-    if not author_id:
-        raise HTTPException(status_code=400, detail="Автор проекта не определен")
-
-    # Проверка, существует ли участник с таким user_id
-    participant = await events_data_collection.find_one(
-        {"_id": ObjectId(event_id), "participants.user_id": author_id}
-    )
-    if not participant:
-        raise HTTPException(status_code=404, detail="Участник не найден")
-
-    # Удаление проекта из массива projects_id
+    # Удаляем участника с указанным projects_id из мероприятия
     result = await events_data_collection.update_one(
-        {"_id": ObjectId(event_id), "participants.user_id": author_id},
-        {"$pull": {"participants.$.projects_id": project_id}}  # Удаляем проект
+        {"_id": ObjectId(event_id)},
+        {"$pull": {"event_participants": {"projects_id": project_id}}}
     )
 
     if result.modified_count == 0:
-        raise HTTPException(status_code=400, detail="Не удалось удалить проект")
-
-    # Проверяем, остались ли проекты у участника
-    updated_participant = await events_data_collection.find_one(
-        {"_id": ObjectId(event_id), "participants.user_id": author_id}
-    )
-
-    # Проверяем, существует ли поле projects_id и пустое ли оно
-    if updated_participant:
-        participant_data = next((p for p in updated_participant['participants'] if p['user_id'] == author_id), None)
-        if participant_data and not participant_data.get('projects_id'):
-            # Если массив projects_id пустой, удаляем участника
-            await events_data_collection.update_one(
-                {"_id": ObjectId(event_id)},
-                {"$pull": {"participants": {"user_id": author_id}}}  # Удаляем участника
-            )
-
-
+        raise HTTPException(status_code=404, detail="Участник с указанным projects_id не найден")
