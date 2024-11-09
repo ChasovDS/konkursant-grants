@@ -41,6 +41,7 @@ class JwtResponse(BaseModel):
     Схема для ответа с информацией о пользователе после аутентификации.
     """
     token: str  # JWT-токен для аутентификации
+    role: Optional[str] = None
 
 
 class ExternalServiceAccounts(BaseModel):

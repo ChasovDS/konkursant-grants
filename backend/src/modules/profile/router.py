@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, status, Query
+from fastapi import APIRouter, HTTPException, Depends, status, Query, Response
 from bson import ObjectId
 from typing import List, Optional, Union
 from src.modules.auth.utils import create_jwt, decode_jwt
@@ -60,16 +60,16 @@ async def get_user_profile(
 # Эндпоинт для получения всех пользователей
 @router.get("/users/profile", response_model=Union[List[ProfileData], List[UserSummary]])
 async def get_all_users(
+        response: Response,
         token: dict = Depends(decode_jwt),
-        details: Optional[bool] = Query(False),  # Параметр по умолчанию False
-        abbreviated: Optional[bool] = Query(False),  # Параметр по умолчанию False
-        page: Optional[int] = Query(1, ge=1),  # Номер страницы, по умолчанию 1
-        limit: Optional[int] = Query(50, ge=1, le=1000)  # Лимит на количество пользователей, по умолчанию 100
+        details: Optional[bool] = Query(False),
+        abbreviated: Optional[bool] = Query(False),
+        page: Optional[int] = Query(1, ge=1),
+        limit: Optional[int] = Query(50, ge=1, le=1000),
+        full_name: Optional[str] = Query(None),
+        yandex: Optional[str] = Query(None),
+        role_name: Optional[str] = Query(None)
 ):
-    """
-    Получение списка всех пользователей с поддержкой пагинации.
-    """
-
     # Проверка прав доступа
     if details:
         await check_permissions(token, operation_type="high-level_operation")
@@ -78,19 +78,32 @@ async def get_all_users(
     else:
         raise HTTPException(status_code=400, detail="Укажите либо «details», либо «abbreviated» параметр")
 
-    # Вычисление смещения для пагинации
     skip = (page - 1) * limit
 
-    # Поиск пользователей в базе данных с учетом пагинации
-    data_users = await profile_data_collection.find({}).skip(skip).limit(limit).to_list(length=limit)
+    query = {}
+    if full_name:
+        query["full_name"] = {"$regex": full_name, "$options": "i"}
+    if yandex:
+        query["external_service_accounts.yandex"] = {"$regex": yandex, "$options": "i"}
+    if role_name:
+        query["role_name"] = role_name
 
-    # Возвращаем данные в зависимости от запрашиваемого формата
+    total_users = await profile_data_collection.count_documents(query)
+    data_users = await profile_data_collection.find(query).skip(skip).limit(limit).to_list(length=limit)
+
+    response.headers['X-Total-Count'] = str(total_users)
+
+    # Возвращаем пустой список, если пользователей нет
+    if not data_users:
+        return []
+
     if details:
         return [ProfileData(**user) for user in data_users]
     elif abbreviated:
         return [UserSummary(**user) for user in data_users]
 
     raise HTTPException(status_code=400, detail="Не удалось получить данные пользователей.")
+
 
 
 # Эндпоинт для получения информации о пользователе

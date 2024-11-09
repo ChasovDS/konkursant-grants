@@ -121,7 +121,7 @@ async def generic_service(token: Dict, user_id: Optional[str], my_permission: st
     elif any_permission in user_permissions:
         return {"status": "success", "message": "Доступ разрешен для других объектов."}
 
-    if entity_id and collection:
+    if entity_id and collection is not None:
         return await check_entity_permissions(entity_id, collection, token_user_id, user_permissions, my_permission, any_permission, not_found_message)
 
     raise HTTPException(

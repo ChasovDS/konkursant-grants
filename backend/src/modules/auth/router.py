@@ -1,6 +1,6 @@
 # src/modules/auth/router.py
 from fastapi import APIRouter, HTTPException, Depends, Response, Cookie
-
+import hashlib
 from src.modules.auth.auth import get_user_info, create_or_load_user_yandex
 from src.modules.auth.utils import create_jwt, hash_password, verify_password
 from src.modules.profile.schemas import JwtResponse
@@ -49,9 +49,13 @@ async def authenticate_with_yandex(token_data: dict):
     # Извлекаем данные из списка
     user_id, email_ya, role = user_data_list
 
+    # Хешируем роль пользователя
+    hashed_role = hashlib.sha256(role.encode()).hexdigest()
+
     # Создаем JWT-токен для аутентификации
     jwt_token = create_jwt(user_id, email_ya, role)
+    # Возвращаем JWT-токен и роль пользователя
+    return JwtResponse(token=jwt_token, role=hashed_role)
 
-    return JwtResponse(token=jwt_token)
 
 

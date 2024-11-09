@@ -115,7 +115,7 @@ const EventDetailsPage = () => {
 
   // Константы типов участников (на русском языке)
   const ParticipantType = {
-    ALL: "Для всех",
+    ALL: "Все желающие",
     MEMBERS: "Только отрядники",
   };
 
@@ -156,9 +156,9 @@ const EventDetailsPage = () => {
       </Breadcrumbs>
 
       <Box sx={{ padding: 2, margin: "auto" }}>
-        <Grid container spacing={2}  >
-          <Grid item xs={12} md={4 }>
-            <Card >
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={4}>
+            <Card>
               <CardMedia
                 component="img"
                 height="240" // Высота карточки
@@ -175,12 +175,12 @@ const EventDetailsPage = () => {
                 <Typography variant="body2" color="textSecondary">
                   {event.event_organizer || "Организатор не указан"}
                 </Typography>
-                <Divider sx={{ margin: "10px 0", bgcolor: 'grey', }} />
+                <Divider sx={{ margin: "10px 0", bgcolor: "grey" }} />
                 <Typography variant="h7">Место проведения:</Typography>
                 <Typography variant="body2" color="textSecondary">
                   {event.event_venue || "Не указано"}
                 </Typography>
-                <Divider sx={{ margin: "10px 0", bgcolor: 'grey', }} />
+                <Divider sx={{ margin: "10px 0", bgcolor: "grey" }} />
                 <Typography variant="h7">Информационные ресурсы:</Typography>
 
                 {event.event_resources ? (
@@ -190,7 +190,7 @@ const EventDetailsPage = () => {
                 ) : (
                   <Typography>Ресурсы не указаны</Typography>
                 )}
-                <Divider sx={{ margin: "10px 0", bgcolor: 'grey', }} />
+                <Divider sx={{ margin: "10px 0", bgcolor: "grey" }} />
                 <Typography variant="h7">
                   Начало и окончание мероприятия:
                 </Typography>
@@ -216,135 +216,172 @@ const EventDetailsPage = () => {
           </Grid>
 
           <Grid item xs={12} sm={8}>
+            <CardContent>
+              <Typography variant="h5" align="left" sx={{ mb: 2 }}>
+                {event.event_full_title || "Название мероприятия не указано"}
+              </Typography>
 
-              <CardContent>
-                <Typography variant="h5" align="left" sx={{ mb: 2 }}>
-                  {event.event_full_title || "Название мероприятия не указано"}
-                </Typography>
-
-                <Grid container spacing={2}>
-                  {[
-                    {
-                      icon: <DescriptionIcon />,
-                      text: `Формат: ${EventFormat[event.event_format] || "Не указан"}`,
-                    },
-                    {
-                      icon: <CheckCircleIcon />,
-                      text: `Статус: ${EventStatus[event.event_status] || "Не указан"}`,
-                    },
-                    {
-                      icon: <PersonAddIcon />,
-                      text: `Участие: ${ParticipantType[event.event_allowed_participants] || "Не указаны"}`,
-                    },
-                    {
-                      icon: <EventNoteIcon />,
-                      text: `Тип: ${EventType[event.event_type] || "Не указан"}`,
-                    },
-                  ].map((item, index) => (
-                    <Grid item xs={12} sm={4} key={index}>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        {/* Иконка */}
-                        <div style={{ display: "flex", alignItems: "center" }}>
-                          {item.icon}
-                        </div>
-                        {/* Текст */}
-                        <Typography
-                          variant="subtitle1"
-                          style={{ lineHeight: 1.5 }}
-                        >
-                          {item.text}
-                        </Typography>
-                      </Stack>
-                    </Grid>
-                  ))}
+              <Grid container spacing={2}>
+                {/* Поле Формат */}
+                <Grid item xs={12} sm={3}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <DescriptionIcon />
+                    </div>
+                    <Stack>
+                      <Typography
+                        variant="subtitle1"
+                        style={{ lineHeight: 1.5, display: "block" }}
+                      >
+                        Формат:
+                      </Typography>
+                      <Typography variant="body1" style={{ lineHeight: 1.5 }}>
+                        {EventFormat[event.event_format] || "Не указан"}
+                      </Typography>
+                    </Stack>
+                  </Stack>
                 </Grid>
 
-                {event.event_tags && event.event_tags.length > 0 ? (
-                  <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-                    {event.event_tags.map((tag, index) => (
-                      <Chip
-                        key={index}
-                        label={tag}
-                        icon={<TagIcon />}
-                        variant="outlined"
-                      />
-                    ))}
+                {/* Поле Статус */}
+                <Grid item xs={12} sm={3}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <CheckCircleIcon />
+                    </div>
+                    <Stack>
+                      <Typography
+                        variant="subtitle1"
+                        style={{ lineHeight: 1.5, display: "block" }}
+                      >
+                        Статус:
+                      </Typography>
+                      <Typography variant="body1" style={{ lineHeight: 1.5 }}>
+                        {EventStatus[event.event_status] || "Не указан"}
+                      </Typography>
+                    </Stack>
                   </Stack>
-                ) : (
-                  <Typography sx={{ mt: 2 }}>Теги не указаны</Typography>
-                )}
-                <Divider sx={{ margin: "10px 0" }} />
-                
-                <Box>
-                  <Typography variant="h6">О мероприятии</Typography>
-                  <Typography
-                    variant="body2"
-                    paragraph
-                    color="textSecondary"
-                    sx={{ mb: 2 }}
-                  >
-                    {event.event_description}
+                </Grid>
+
+                {/* Поле Участие */}
+                <Grid item xs={12} sm={3}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <PersonAddIcon />
+                    </div>
+                    <Stack>
+                      <Typography
+                        variant="subtitle1"
+                        style={{ lineHeight: 1.5, display: "block" }}
+                      >
+                        Участие:
+                      </Typography>
+                      <Typography variant="body1" style={{ lineHeight: 1.5 }}>
+                        {ParticipantType[event.event_allowed_participants] ||
+                          "Не указаны"}
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                </Grid>
+
+                {/* Поле Тип */}
+                <Grid item xs={12} sm={3}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <EventNoteIcon />
+                    </div>
+                    <Stack>
+                      <Typography
+                        variant="subtitle1"
+                        style={{ lineHeight: 1.5, display: "block" }}
+                      >
+                        Тип:
+                      </Typography>
+                      <Typography variant="body1" style={{ lineHeight: 1.5 }}>
+                        {EventType[event.event_type] || "Не указан"}
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                </Grid>
+              </Grid>
+              {event.event_tags && event.event_tags.length > 0 ? (
+                <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+                  {event.event_tags.map((tag, index) => (
+                    <Chip
+                      key={index}
+                      label={tag}
+                      icon={<TagIcon />}
+                      variant="outlined"
+                    />
+                  ))}
+                </Stack>
+              ) : (
+                <Typography sx={{ mt: 2 }}>Теги не указаны</Typography>
+              )}
+              <Divider sx={{ margin: "10px 0" }} />
+
+              <Box>
+                <Typography variant="h6">О мероприятии</Typography>
+                <Typography
+                  variant="body2"
+                  paragraph
+                  color="textSecondary"
+                  sx={{ mb: 2 }}
+                >
+                  {event.event_description}
+                </Typography>
+              </Box>
+
+              <Divider sx={{ margin: "10px 0" }} />
+
+              <Box>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle1" sx={{ mb: 1, color: "#555" }}>
+                    Организаторы
                   </Typography>
-                </Box>
+                  {event.event_managers && event.event_managers.length > 0 ? (
+                    <Stack direction="row" spacing={2}>
+                      {event.event_managers.map((manager) => (
+                        <Chip
+                          icon={<PersonIcon />}
+                          key={manager.user_id}
+                          label={manager.user_full_name}
+                          variant="outlined"
+                        />
+                      ))}
+                    </Stack>
+                  ) : (
+                    <Typography sx={{ color: "#888" }}>
+                      Организаторы не указаны
+                    </Typography>
+                  )}
+                </Grid>
 
                 <Divider sx={{ margin: "10px 0" }} />
 
-                <Box>
-                  <Grid item xs={12} sm={6}>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{ mb: 1, color: "#555" }}
-                    >
-                      Организаторы
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle1" sx={{ mb: 1, color: "#555" }}>
+                    Эксперты
+                  </Typography>
+                  {event.event_experts && event.event_experts.length > 0 ? (
+                    <Stack direction="row" spacing={2}>
+                      {event.event_experts.map((expert) => (
+                        <Chip
+                          key={expert.user_id}
+                          icon={<PersonIcon />}
+                          label={expert.user_full_name}
+                          variant="outlined"
+                        />
+                      ))}
+                    </Stack>
+                  ) : (
+                    <Typography sx={{ color: "#888" }}>
+                      Эксперты не указаны
                     </Typography>
-                    {event.event_managers && event.event_managers.length > 0 ? (
-                      <Stack direction="row" spacing={2}>
-                        {event.event_managers.map((manager) => (
-                          <Chip
-                            icon={<PersonIcon />}
-                            key={manager.user_id}
-                            label={manager.user_full_name}
-                            variant="outlined"
-                          />
-                        ))}
-                      </Stack>
-                    ) : (
-                      <Typography sx={{ color: "#888" }}>
-                        Организаторы не указаны
-                      </Typography>
-                    )}
-                  </Grid>
-
-                  <Divider sx={{ margin: "10px 0" }} />
-
-                  <Grid item xs={12} sm={6}>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{ mb: 1, color: "#555" }}
-                    >
-                      Эксперты
-                    </Typography>
-                    {event.event_experts && event.event_experts.length > 0 ? (
-                      <Stack direction="row" spacing={2}>
-                        {event.event_experts.map((expert) => (
-                          <Chip
-                            key={expert.user_id}
-                            icon={<PersonIcon />}
-                            label={expert.user_full_name}
-                            variant="outlined"
-                          />
-                        ))}
-                      </Stack>
-                    ) : (
-                      <Typography sx={{ color: "#888" }}>
-                        Эксперты не указаны
-                      </Typography>
-                    )}
-                  </Grid>
-                </Box>
-              </CardContent>
+                  )}
+                </Grid>
+              </Box>
+            </CardContent>
           </Grid>
-  
         </Grid>
 
         <Box

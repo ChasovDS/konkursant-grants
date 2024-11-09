@@ -23,6 +23,7 @@ import UserProfile from './components/workspace/UserProfile';
 import EventDetailsPage from './components/ComponentsEvents/_EventDetailsPage'; 
 import ProjectDetails from './components/ViewDetailsProject/_ProjectDetails.jsx'; 
 
+import Forbidden from './pages/Forbidden';
 import NotFound from './pages/NotFound'; // Страница 404
 import theme from './theme/theme';
 import { ThemeProvider } from '@mui/material/styles';
@@ -119,6 +120,10 @@ const router = createBrowserRouter([
   {
     path: '*',
     element: <NotFound />,
+  },
+  {
+    path: '/forbidden',
+    element: <Forbidden  />,
   },
 ]);
 

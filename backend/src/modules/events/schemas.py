@@ -4,6 +4,13 @@ from typing import List, Optional
 from enum import Enum
 
 
+class EventStatus(str, Enum):
+    ALL = "Любой"
+    COMPLETED = "Проведено"
+    IN_PROGRESS = "Проводится"
+    SCHEDULED = "Запланировано"
+    CANCELED = "Отменено"
+
 class EventUserData(BaseModel):
     user_id: constr(min_length=1) = Field(..., description="ID Пользователя")
     user_full_name: constr(min_length=1) = Field(..., description="ФИО Пользователя")

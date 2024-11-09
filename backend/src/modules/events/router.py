@@ -5,7 +5,7 @@ from bson import ObjectId
 from src.modules.auth.utils import create_jwt, decode_jwt
 from src.utils import check_permissions
 from pymongo import DESCENDING
-from src.modules.events.schemas import EventBase, EventCreate, EventReduced
+from src.modules.events.schemas import EventBase, EventCreate, EventReduced, EventStatus
 from src.modules.projects.schemas import ProjectFICPersonSummary
 from src.modules.profile.schemas import UserSummary
 from src.database import projects_data_collection, events_data_collection, profile_data_collection
@@ -71,6 +71,7 @@ async def update_event(event_id: str, event: EventBase, token: dict = Depends(de
 # Эндпоинт для получения списка мероприятий с пагинацией
 @router.get("/events", response_model=Dict[str, Any])
 async def get_events(
+        response: Response,
         full_title: str = None,
         event_type: str = None,
         tags: str = None,
@@ -118,13 +119,20 @@ async def get_events(
         query["event_venue"] = {"$regex": location, "$options": "i"}
 
     total_events = await events_data_collection.count_documents(query)
+    total_count = await events_data_collection.count_documents(query)
     events = await events_data_collection.find(query).skip(skip).limit(limit).sort("date", DESCENDING).to_list(
         length=limit)
 
     for event in events:
         event['id_event'] = str(event['_id'])
 
+    response.headers['X-Total-Count'] = str(total_count)
+    print(str(total_count))
     return {"total": total_events, "events": [EventReduced(**event) for event in events]}
+
+
+
+
 
 
 
@@ -252,10 +260,24 @@ async def delete_spectator(event_id: str, user_id: str, token: dict = Depends(de
 
 # Эндпоинт для получения всех проектов конкретного мероприятия
 @router.get("/events/{event_id}/projects", response_model=List[ProjectFICPersonSummary])
-async def get_projects_by_event(event_id: str, token: dict = Depends(decode_jwt)):
+async def get_projects_by_event(
+    response: Response,
+    event_id: str,
+    page: int = 1,
+    limit: int = 10,
+    author: str = "",
+    title: str = "",
+    rating: str = "",
+    token: dict = Depends(decode_jwt)
+):
     """
     Получение списка всех проектов для конкретного мероприятия по его ID.
     - **event_id**: ID мероприятия.
+    - **page**: Номер страницы.
+    - **limit**: Количество элементов на странице.
+    - **author**: Условие поиска по ФИО автора.
+    - **title**: Условие поиска по названию проекта.
+    - **rating**: Фильтр по оценке (оценено/не оценено).
     """
     await check_permissions(token)
 
@@ -266,56 +288,85 @@ async def get_projects_by_event(event_id: str, token: dict = Depends(decode_jwt)
 
     # Получение списка проектов, связанных с мероприятием
     participants = event.get("event_participants", [])
-
-    # Извлечение проектов из участников
     project_ids_flat = [participant["projects_id"] for participant in participants if "projects_id" in participant]
-
-    # Фильтрация некорректных идентификаторов
     valid_project_ids = [pid for pid in project_ids_flat if ObjectId.is_valid(pid)]
 
     if not valid_project_ids:
-        raise HTTPException(status_code=404, detail="Нет корректных проектов для данного мероприятия.")
+        return []  # Возвращаем пустой список, если нет корректных проектов
 
-    # Поиск проектов по их ID
-    projects_cursor = projects_data_collection.find({"_id": {"$in": [ObjectId(pid) for pid in valid_project_ids]}})
-    projects = await projects_cursor.to_list(length=100)
+    # Создаем базовый фильтр для поиска
+    filter_conditions = {"_id": {"$in": [ObjectId(pid) for pid in valid_project_ids]}}
 
-    if not projects:
-        raise HTTPException(status_code=404, detail="Проекты не найдены для данного мероприятия.")
+    # Добавляем фильтрацию по названию проекта, если указано
+    if title:
+        filter_conditions["project_name"] = {"$regex": title, "$options": "i"}
+
+    # Добавляем фильтрацию по ФИО автора, если указано
+    if author:
+        filter_conditions["author_name"] = {"$regex": author, "$options": "i"}
+
+    # Получение общего количества проектов перед пагинацией
+    total_count = await projects_data_collection.count_documents(filter_conditions)
+
+    # Получение проектов с учетом пагинации
+    projects_cursor = projects_data_collection.find(filter_conditions).skip((page - 1) * limit).limit(limit)
+    projects = await projects_cursor.to_list(length=limit)
+
+    # Фильтрация проектов по оценке
+    if rating == "rated":
+        projects = [project for project in projects if any(review["expert_id"] == token["user_id"] for review in project.get("reviews", []))]
+    elif rating == "not-rated":
+        projects = [project for project in projects if not any(review["expert_id"] == token["user_id"] for review in project.get("reviews", []))]
 
     # Добавление project_id к проектам
     for project in projects:
         project["project_id"] = str(project["_id"])
 
+    # Установка заголовка с общим количеством проектов
+
+    response.headers['X-Total-Count'] = str(total_count)
+
     return [ProjectFICPersonSummary(**project) for project in projects]
+
 
 # Эндпоинт для получения мероприятий, где пользователь назначен экспертом
 @router.get("/events/expert/list", response_model=List[EventReduced])
-async def get_events_as_expert(token: dict = Depends(decode_jwt)):
+async def get_events_as_expert(
+        response: Response,
+        token: dict = Depends(decode_jwt),
+        page: int = 1,
+        limit: int = 10,
+        title: Optional[str] = None,
+        status: Optional[EventStatus] = None
+):
     """
-    Получение списка мероприятий, где пользователь назначен экспертом.
+    Получение списка мероприятий, где пользователь назначен экспертом с пагинацией и фильтрацией.
     """
-    # Получаем user_id из токена
     user_id = token.get("user_id")
-
-    # Проверка, что user_id существует
     if not user_id:
         raise HTTPException(status_code=400, detail="Не удалось извлечь user_id из токена.")
 
-    # Поиск мероприятий, где пользователь указан как эксперт
     query = {"event_experts": {"$elemMatch": {"user_id": user_id}}}
-    events = await events_data_collection.find(query).to_list(length=None)
 
-    # Проверка наличия мероприятий
+    if title:
+        query["event_full_title"] = {"$regex": title, "$options": "i"}
+    if status:
+        query["event_status"] = status.name
+
+    total_events = await events_data_collection.count_documents(query)
+    events = await events_data_collection.find(query).skip((page - 1) * limit).limit(limit).to_list(length=limit)
+
+    # Возвращаем пустой список, если мероприятий не найдено
     if not events:
-        raise HTTPException(status_code=404, detail="Нет мероприятий, где вы назначены экспертом.")
+        return []  # Возвращаем пустой список вместо ошибки
 
-    # Добавление id_event к мероприятиям
+    # Преобразуем ID мероприятия в строку
     for event in events:
         event['id_event'] = str(event['_id'])
 
+    # Возвращаем только список мероприятий
+    response.headers['X-Total-Count'] = str(total_events)  # Устанавливаем общее количество в заголовках
     return [EventReduced(**event) for event in events]
-
 
 # Эндпоинт для получения всех участников конкретного мероприятия
 @router.get("/events/{event_id}/participants", response_model=List[UserSummary])

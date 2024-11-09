@@ -28,6 +28,7 @@ const RoleManager = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalUsers, setTotalUsers] = useState(0);
   const [selectedRoles, setSelectedRoles] = useState({});
+  
   const RoleEnum = {
     ADMIN: "admin",
     MODERATOR: "moderator",

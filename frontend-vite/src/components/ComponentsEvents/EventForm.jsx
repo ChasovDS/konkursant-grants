@@ -26,6 +26,7 @@ const EventForm = ({ title, onSaveDraft, onPublish }) => {
   const [logoBASE, setLogoBASE] = useState(null);
   const [experts, setExperts] = useState([]);
   const [managers, setManagers] = useState([]);
+
   const [eventData, setEventData] = useState({
     organizer: '',
     participantType: '',
@@ -40,6 +41,14 @@ const EventForm = ({ title, onSaveDraft, onPublish }) => {
     startTime: '',
     endDate: '',
     endTime: '',
+  });
+
+  const prepareEventData = () => ({
+    ...eventData,
+    tags,
+    managers,
+    experts,
+    logoBASE,
   });
 
   const [errors, setErrors] = useState({});
@@ -209,13 +218,7 @@ const EventForm = ({ title, onSaveDraft, onPublish }) => {
     }
   };
 
-  const prepareEventData = () => ({
-    ...eventData,
-    tags,
-    managers,
-    experts,
-    logoBASE,
-  });
+
 
   return (
     <Container>
@@ -474,9 +477,10 @@ const EventForm = ({ title, onSaveDraft, onPublish }) => {
               multiline
               rows={6}
               name="description"
+              inputProps={{ maxLength: 550 }} 
               value={eventData.description}
               error={!!errors.description}
-              helperText={errors.description}
+              helperText={errors.description || `${eventData.description.length}/550`} 
               onChange={handleInputChange}
             />
 

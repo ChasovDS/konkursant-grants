@@ -136,7 +136,51 @@ async def get_my_projects(
 
     return projects
 
+# Эндпоинт для получения всех проектов в системе
+@router.get("/projects-all", response_model=List[ProjectFICPersonSummary])
+async def get_all_projects(
+    response: Response,
+    page: int = 1,
+    limit: int = 10,
+    author: str = "",
+    title: str = "",
+    token: dict = Depends(decode_jwt)
+):
+    """
+    Получение списка всех проектов в системе с возможностью фильтрации.
+    - **page**: Номер страницы.
+    - **limit**: Количество элементов на странице.
+    - **author**: Условие поиска по ФИО автора.
+    - **title**: Условие поиска по названию проекта.
+    """
+    await check_permissions(token, operation_type="high-level_operation")
 
+    # Создаем базовый фильтр для поиска
+    filter_conditions = {}
+
+    # Добавляем фильтрацию по названию проекта, если указано
+    if title:
+        filter_conditions["project_name"] = {"$regex": title, "$options": "i"}
+
+    # Добавляем фильтрацию по ФИО автора, если указано
+    if author:
+        filter_conditions["author_name"] = {"$regex": author, "$options": "i"}
+
+    # Получение общего количества проектов перед пагинацией
+    total_count = await projects_data_collection.count_documents(filter_conditions)
+
+    # Получение проектов с учетом пагинации
+    projects_cursor = projects_data_collection.find(filter_conditions).skip((page - 1) * limit).limit(limit)
+    projects = await projects_cursor.to_list(length=limit)
+
+    # Добавление project_id к проектам
+    for project in projects:
+        project["project_id"] = str(project["_id"])
+
+    # Установка заголовка с общим количеством проектов
+    response.headers['X-Total-Count'] = str(total_count)
+
+    return [ProjectFICPersonSummary(**project) for project in projects]
 
 
 # Эндпоинт для получения списка проектов
@@ -170,6 +214,8 @@ async def get_projects(
     projects = [await convert_project_to_summary(project) async for project in projects_cursor]
 
     return projects
+
+
 
 
 
