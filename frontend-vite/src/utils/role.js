@@ -11,23 +11,28 @@ const roles = {
     user: SHA256('user').toString(),
 };
 
-function getRoleByHash() {
+
+// Функция для получения роли по хешу
+export function getRoleByHash() {
     const roleToken = Cookies.get("role_token");
     if (!roleToken) {
-        return null;
+      return null;
     }
     for (const [role, hash] of Object.entries(roles)) {
-        if (hash === roleToken) {
-            return role;
-        }
+      if (hash === roleToken) {
+        return role;
+      }
     }
     return null;
-}
+  }
+
 
 // Функция для проверки роли
 export const checkRole = (requiredRole) => {
     const userRole = getRoleByHash(); // Получаем роль пользователя
     return userRole === requiredRole; // Возвращаем true или false
 };
+
+
 
 export default getRoleByHash;

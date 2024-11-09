@@ -127,9 +127,7 @@ async def get_events(
         event['id_event'] = str(event['_id'])
 
     response.headers['X-Total-Count'] = str(total_count)
-    print(str(total_count))
     return {"total": total_events, "events": [EventReduced(**event) for event in events]}
-
 
 
 

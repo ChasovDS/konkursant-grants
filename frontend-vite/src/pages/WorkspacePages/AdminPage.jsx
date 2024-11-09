@@ -7,7 +7,7 @@ import UserListAdmin from "../../components/workspace/AdminTabs/UserListAdmin.js
 import EventListAdmin from "../../components/workspace/AdminTabs/EventListAdmin.jsx";
 import ProjectListAdmin from "../../components/workspace/AdminTabs/ProjectListAdmin.jsx";
 
-import { checkRole } from "../../utils/role"; // Импортируем функцию проверки роли
+import { checkRole } from "../../utils/role.js"; // Импортируем функцию проверки роли
 
 // Конфигурация вкладок
 const tabConfig = [

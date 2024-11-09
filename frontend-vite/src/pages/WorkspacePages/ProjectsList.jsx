@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext  } from "react";
 import axios from "axios";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
@@ -25,8 +25,10 @@ import PersonIcon from "@mui/icons-material/Person";
 import TitleIcon from "@mui/icons-material/Title";
 import StarRateIcon from "@mui/icons-material/StarRate";
 import Cookies from "js-cookie";
+import { AuthContext } from './../../components/ComponentsApp/AuthProvider';
 
 const ProjectsList = () => {
+  const { session } = useContext(AuthContext);
   const { eventId } = useParams();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,13 +63,23 @@ const ProjectsList = () => {
         const totalCountFromHeader = response.headers["x-total-count"];
         setTotalCount(parseInt(totalCountFromHeader, 10));
 
-        const userResponse = await axios.get(
-          `http://127.0.0.1:8000/api/v1/users/me?details=false&abbreviated=true`,
-          {
-            headers: { Authorization: `Bearer ${jwtToken}` },
-          }
-        );
-        setUserId(userResponse.data.user_id);
+  
+
+        // Проверяем user_id в session.user
+        if (session.user && session.user.user_id) {
+          setUserId(session.user.user_id);
+        } else {
+          // Если user_id нет, выполняем запрос для получения user_id
+          const userResponse = await axios.get(
+            `http://127.0.0.1:8000/api/v1/users/me?details=false&abbreviated=true`,
+            {
+              headers: { Authorization: `Bearer ${jwtToken}` },
+            }
+          );
+          setUserId(userResponse.data.user_id);
+        }
+
+
       } catch (error) {
         console.error("Ошибка при загрузке данных:", error);
         setError("Не удалось загрузить проекты. Пожалуйста, попробуйте позже.");

@@ -1,11 +1,9 @@
 // src/pages/RedirectPage.jsx
 import { useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { exchangeTokenForUserInfo } from '../utils/auth';
 
 const RedirectPage = () => {
     const apiUrl = import.meta.env.VITE_API_URL;
-    const navigate = useNavigate();
 
     const processToken = useCallback(async (token) => {
         try {

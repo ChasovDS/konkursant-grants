@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Select,
   MenuItem,
@@ -14,8 +14,11 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { AuthContext } from './../../components/ComponentsApp/AuthProvider';
 
 const ProjectAssignment = ({ eventId, onParticipantsUpdate }) => {
+  const { session } = useContext(AuthContext);
+  const userId = session.user.user_id;
   const [project, setProject] = useState("");
   const [userProject, setUserProject] = useState(null);
   const [availableProjects, setAvailableProjects] = useState([]);
@@ -55,17 +58,34 @@ const ProjectAssignment = ({ eventId, onParticipantsUpdate }) => {
         }
       );
 
-      // Получение информации о пользователе
-      const userResponse = await axios.get(
-        `http://127.0.0.1:8000/api/v1/users/me?details=false&abbreviated=true`,
-        {
-          headers: { Authorization: `Bearer ${jwtToken}` },
+
+        // Проверяем, есть ли user_id
+        let user_id;
+
+        // Если user_id нет, выполняем запрос для получения user_id
+        try {
+          const userResponse = await axios.get(
+            `http://127.0.0.1:8000/api/v1/users/me?details=false&abbreviated=true`,
+            {
+              headers: { Authorization: `Bearer ${jwtToken}` }, // Передаем токен авторизации
+            }
+          );
+
+          // Получаем user_id из ответа
+          user_id = userResponse.data.user_id;
+
+        } catch (error) {
+          console.error("Ошибка при получении user_id:", error);
+          // Здесь можно обработать ошибку, например, установить user_id в null или выполнить другую логику
+          user_id = null; // или любое другое значение по умолчанию
         }
-      );
+
+
 
       // Проверка участия пользователя в мероприятии
+      console.log("id пользователя:", userId);
       const participant = eventResponse.data.event_participants.find(
-        (participant) => participant.user_id === userResponse.data.user_id
+        (participant) => participant.user_id === userId
       );
 
       if (participant) {

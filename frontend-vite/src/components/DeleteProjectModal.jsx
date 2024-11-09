@@ -1,10 +1,9 @@
-// src/components/DeleteProjectModal.jsx
-
 import React, { useState } from 'react';
 import { Modal, Box, Typography, TextField, Button } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import WarningIcon from '@mui/icons-material/Warning';
 
+// Стили для модального окна
 const ModalStyle = {
   position: 'absolute',
   top: '50%',
@@ -57,8 +56,8 @@ const DeleteProjectModal = ({ open, onClose, onConfirm, projectName }) => {
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           sx={{ marginTop: 2, borderRadius: 4 }}
-          error={inputValue && !isMatch}
-          helperText={inputValue && !isMatch ? 'Название проекта не совпадает' : ''}
+          error={inputValue && !isMatch} // Здесь все правильно
+          helperText={inputValue && !isMatch ? 'Название проекта не совпадает' : ' '} // Обратите внимание на пробел
         />
         <Box display="flex" justifyContent="space-between" mt={3}>
           <Button onClick={onClose} color="primary" sx={{ borderRadius: 4 }}>
