@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Typography, Box, CircularProgress, Snackbar } from '@mui/material';
-import EventsList from '../../components/EventsList';
-import EventFilter from '../../components/EventFilter';
-import Paginate from '../../components/Paginate';
+
+import EventsList from '../../components/WorkspacePages/EventPage/EventsList';
+import EventFilter from '../../components/WorkspacePages/EventPage/ComponentsEventPage/EventFilter';
+import Paginate from '../../components/WorkspacePages/EventPage/ComponentsEventPage/Paginate';
+
 import axios from 'axios';
 import Cookies from 'js-cookie';
 

@@ -18,9 +18,14 @@ import {
   Pagination,
   Box,
   IconButton,
+  Tooltip,
 } from "@mui/material";
 import Cookies from "js-cookie";
 import TitleIcon from "@mui/icons-material/Title";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import DeleteEventModal from "./ComponentsAdminPage/DeleteEventModal";
 
 const EventStatus = {
   ALL: "Любой",
@@ -39,6 +44,8 @@ const EventsList = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [searchTitle, setSearchTitle] = useState("");
   const [filterStatus, setFilterStatus] = useState(EventStatus.ALL);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,20 +53,22 @@ const EventsList = () => {
       const jwtToken = Cookies.get("auth_token");
       try {
         const response = await axios.get(
-          "http://127.0.0.1:8000/api/v1/events/expert/list",
+          "http://127.0.0.1:8000/api/v1/events",
           {
             headers: { Authorization: `Bearer ${jwtToken}` },
             params: {
               page,
               limit: rowsPerPage,
-              title: searchTitle,
-              status: filterStatus === EventStatus.ALL ? undefined : filterStatus,
+              full_title: searchTitle,
+              event_status: filterStatus === EventStatus.ALL ? undefined : filterStatus,
             },
           }
         );
-        setEvents(response.data);
-        const totalCountFromHeader = response.headers["x-total-count"];
-        setTotalCount(parseInt(totalCountFromHeader, 10));
+        setEvents(response.data.events);
+        const totalCountFromHeader = response.headers["X-Total-Count"];
+        setTotalCount(
+          totalCountFromHeader ? parseInt(totalCountFromHeader, 10) : 0
+        );
       } catch (error) {
         console.error("Ошибка при загрузке мероприятий:", error);
         setError("Не удалось загрузить мероприятия. Пожалуйста, попробуйте позже.");
@@ -70,14 +79,35 @@ const EventsList = () => {
     fetchEvents();
   }, [page, rowsPerPage, searchTitle, filterStatus]);
 
-  const handleViewProjects = (eventId) => {
-    navigate(`/workspace/reviews/${eventId}/projects`);
+  const handleDeleteEvent = async () => {
+    const jwtToken = Cookies.get("auth_token");
+    try {
+      await axios.delete(
+        `http://127.0.0.1:8000/api/v1/events/${eventToDelete}`,
+        {
+          headers: { Authorization: `Bearer ${jwtToken}` },
+        }
+      );
+      setEvents(events.filter((event) => event.id_event !== eventToDelete));
+      setModalOpen(false);
+      setEventToDelete(null);
+    } catch (error) {
+      console.error("Ошибка при удалении мероприятия:", error);
+      setError("Не удалось удалить мероприятие. Пожалуйста, попробуйте позже.");
+    }
+  };
+
+  const handleViewEvent = (eventId) => {
+    navigate(`/workspace/events/${eventId}`);
+  };
+
+  const handleEditEvent = (eventId) => {
+    navigate(`/workspace/events/edit/${eventId}`);
   };
 
   const handlePaginationChange = (event, value) => {
     setPage(value);
   };
-
 
   if (loading) return <div>Загрузка...</div>;
 
@@ -123,7 +153,7 @@ const EventsList = () => {
                 <TableCell>Логотип</TableCell>
                 <TableCell>Название мероприятия</TableCell>
                 <TableCell>Статус</TableCell>
-                <TableCell>Дата и время начала</TableCell>
+                <TableCell>Дата начала</TableCell>
                 <TableCell>Теги</TableCell>
                 <TableCell>Действия</TableCell>
               </TableRow>
@@ -132,7 +162,9 @@ const EventsList = () => {
               {events.length > 0 ? (
                 events.map((event, index) => (
                   <TableRow key={event.id_event}>
-                    <TableCell>{(page - 1) * rowsPerPage + index + 1}</TableCell>
+                    <TableCell>
+                      {(page - 1) * rowsPerPage + index + 1}
+                    </TableCell>
                     <TableCell>
                       <img
                         src={event.event_logo}
@@ -157,14 +189,41 @@ const EventsList = () => {
                       ))}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        size="small"
-                        onClick={() => handleViewProjects(event.id_event)}
-                      >
-                        Открыть проекты
-                      </Button>
+                      <Box display="flex" alignItems="center">
+                        <Tooltip title="Просмотр мероприятия">
+                          <IconButton
+                            color="primary"
+                            size="small"
+                            onClick={() => handleViewEvent(event.id_event)}
+                          >
+                            <VisibilityIcon />
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Редактирование мероприятия">
+                          <IconButton
+                            color="secondary"
+                            size="small"
+                            sx={{ display: 'none' }}
+                            onClick={() => handleEditEvent(event.id_event)}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Удаление мероприятия">
+                          <IconButton
+                            color="error"
+                            size="small"
+                            onClick={() => {
+                              setEventToDelete(event.id_event);
+                              setModalOpen(true);
+                            }}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))
@@ -200,6 +259,12 @@ const EventsList = () => {
           </Alert>
         </Snackbar>
       </Paper>
+      <DeleteEventModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onConfirm={handleDeleteEvent}
+        eventName={events.find(event => event.id_event === eventToDelete)?.event_full_title}
+      />
     </Box>
   );
 };

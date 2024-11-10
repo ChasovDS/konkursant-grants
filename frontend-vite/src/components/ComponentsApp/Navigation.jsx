@@ -11,36 +11,36 @@ export const NAVIGATION = {
   admin: [
     {
       title: "Главная",
-      segment: "dashboard/workspace",
+      segment: "workspace",
       icon: <DashboardIcon />,
     },
     {
-      segment: "dashboard/workspace/admin-page",
+      segment: "workspace/admin-page",
       title: "Администрирование",
       icon: <AdminPanelSettingsIcon />,
     },
     {
-      segment: "dashboard/workspace/profile",
+      segment: "workspace/profile",
       title: "Мой профиль",
       icon: <PersonIcon />,
     },
     {
-      segment: "dashboard/workspace/projects",
+      segment: "workspace/projects",
       title: "Мои проекты",
       icon: <ProjectIcon />,
     },
     {
-      segment: "dashboard/workspace/events",
+      segment: "workspace/events",
       title: "Мероприятия",
       icon: <EventIcon />,
     },
     {
-      segment: "dashboard/workspace/reviews",
+      segment: "workspace/reviews",
       title: "Модуль оценки",
       icon: <RateReviewIcon />,
     },
     {
-      segment: "dashboard/workspace/instructions",
+      segment: "workspace/instructions",
       title: "Инструкция",
       icon: <HelpIcon />,
     },
@@ -48,36 +48,36 @@ export const NAVIGATION = {
   moderator: [
     {
       title: "Главная",
-      segment: "dashboard/workspace",
+      segment: "workspace",
       icon: <DashboardIcon />,
     },
     {
-      segment: "dashboard/workspace/admin-page",
+      segment: "workspace/admin-page",
       title: "Администрирование",
       icon: <AdminPanelSettingsIcon />,
     },
     {
-      segment: "dashboard/workspace/profile",
+      segment: "workspace/profile",
       title: "Мой профиль",
       icon: <PersonIcon />,
     },
     {
-      segment: "dashboard/workspace/projects",
+      segment: "workspace/projects",
       title: "Мои проекты",
       icon: <ProjectIcon />,
     },
     {
-      segment: "dashboard/workspace/events",
+      segment: "workspace/events",
       title: "Мероприятия",
       icon: <EventIcon />,
     },
     {
-      segment: "dashboard/workspace/reviews",
+      segment: "workspace/reviews",
       title: "Оценка проектов",
       icon: <RateReviewIcon />,
     },
     {
-      segment: "dashboard/workspace/instructions",
+      segment: "workspace/instructions",
       title: "Инструкция",
       icon: <HelpIcon />,
     },
@@ -85,31 +85,31 @@ export const NAVIGATION = {
   event_manager: [
     {
       title: "Главная",
-      segment: "dashboard/workspace",
+      segment: "workspace",
       icon: <DashboardIcon />,
     },
     {
-      segment: "dashboard/workspace/profile",
+      segment: "workspace/profile",
       title: "Мой профиль",
       icon: <PersonIcon />,
     },
     {
-      segment: "dashboard/workspace/projects",
+      segment: "workspace/projects",
       title: "Мои проекты",
       icon: <ProjectIcon />,
     },
     {
-      segment: "dashboard/workspace/events",
+      segment: "workspace/events",
       title: "Мероприятия",
       icon: <EventIcon />,
     },
     {
-      segment: "dashboard/workspace/reviews",
+      segment: "workspace/reviews",
       title: "Оценка проектов",
       icon: <RateReviewIcon />,
     },
     {
-      segment: "dashboard/workspace/instructions",
+      segment: "workspace/instructions",
       title: "Инструкция",
       icon: <HelpIcon />,
     },
@@ -117,31 +117,31 @@ export const NAVIGATION = {
   expert: [
     {
       title: "Главная",
-      segment: "dashboard/workspace",
+      segment: "workspace",
       icon: <DashboardIcon />,
     },
     {
-      segment: "dashboard/workspace/profile",
+      segment: "workspace/profile",
       title: "Мой профиль",
       icon: <PersonIcon />,
     },
     {
-      segment: "dashboard/workspace/projects",
+      segment: "workspace/projects",
       title: "Мои проекты",
       icon: <ProjectIcon />,
     },
     {
-      segment: "dashboard/workspace/events",
+      segment: "workspace/events",
       title: "Мероприятия",
       icon: <EventIcon />,
     },
     {
-      segment: "dashboard/workspace/reviews",
+      segment: "workspace/reviews",
       title: "Оценка проектов",
       icon: <RateReviewIcon />,
     },
     {
-      segment: "dashboard/workspace/instructions",
+      segment: "workspace/instructions",
       title: "Инструкция",
       icon: <HelpIcon />,
     },
@@ -153,26 +153,26 @@ export const NAVIGATION = {
     },
     {
       title: "Главная",
-      segment: "dashboard/workspace",
+      segment: "workspace",
       icon: <DashboardIcon />,
     },
     {
-      segment: "dashboard/workspace/profile",
+      segment: "workspace/profile",
       title: "Мой профиль",
       icon: <PersonIcon />,
     },
     {
-      segment: "dashboard/workspace/events",
+      segment: "workspace/events",
       title: "Мероприятия",
       icon: <EventIcon />,
     },
     {
-      segment: "dashboard/workspace/projects",
+      segment: "workspace/projects",
       title: "Мои проекты",
       icon: <ProjectIcon />,
     },
     {
-      segment: "dashboard/workspace/instructions",
+      segment: "workspace/instructions",
       title: "Инструкция",
       icon: <HelpIcon />,
     },

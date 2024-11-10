@@ -101,7 +101,7 @@ async def get_reviews_by_project(project_id: str, token: dict = Depends(decode_j
     """
     Получение списка проверок по ID проекта.
     """
-    await check_permissions(token, SERVICE_NAME, project_id=project_id)
+    await check_permissions(token)
 
     reviews_cursor = reviews_data_collection.find({"project_id": project_id})
     reviews = await reviews_cursor.to_list(length=100)

@@ -1,35 +1,48 @@
 // src/components/ComponentsApp/AuthProvider.jsx
 import React, { useEffect, useCallback, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom"; // Импортируем useNavigate
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
+import CryptoJS from "crypto-js"; // Импортируем библиотеку для шифрования
 
 // Создаем контекст
 const AuthContext = React.createContext();
 
-const AuthProvider = ({ children }) => {
-  const navigate = useNavigate(); // Инициализируем navigate
-  const [session, setSession] = useState({
-    user: null, // Начальное состояние пользователя
-  });
+// Константа для API URL
+const API_URL = "http://127.0.0.1:8000/api/v1/users/me?details=false&abbreviated=true";
 
-  // Функция для входа
+// Ключ для шифрования (в реальном приложении храните его в переменных окружения!)
+const ENCRYPTION_KEY = "your-encryption-key";
+
+const AuthProvider = ({ children }) => {
+  const navigate = useNavigate();
+  const [session, setSession] = useState({ user: null });
+  const [error, setError] = useState(null);
+
+  const encryptData = (data) => {
+    return CryptoJS.AES.encrypt(JSON.stringify(data), ENCRYPTION_KEY).toString();
+  };
+
+  const decryptData = (ciphertext) => {
+    const bytes = CryptoJS.AES.decrypt(ciphertext, ENCRYPTION_KEY);
+    return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+  };
+
   const signIn = useCallback((userData) => {
+    const encryptedData = encryptData(userData);
     setSession({ user: userData });
-    // Сохраняем данные пользователя в куках
-    Cookies.set('userData', JSON.stringify(userData), { expires: 7 }); // Куки действительны 7 дней
+    Cookies.set('userData', encryptedData, {
+      expires: 7,
+      secure: true,
+      sameSite: 'Strict',
+      path: '/'
+    });
   }, []);
 
-  // Функция для выхода
   const signOut = useCallback(() => {
-    // Удаляем токены из cookies
-    Cookies.remove("role_token");
     Cookies.remove("auth_token");
-    // Обнуляем сессию
-    setSession({ user: null });
-    // Удаляем данные пользователя из куков
     Cookies.remove('userData');
-    // Редирект на главную страницу
+    setSession({ user: null });
     navigate('/');
   }, [navigate]);
 
@@ -41,51 +54,43 @@ const AuthProvider = ({ children }) => {
     [signIn, signOut]
   );
 
-  // Получаем данные пользователя при первой загрузке ЕСЛИ userData НЕ СУЩЕСТВУЕТ 
   useEffect(() => {
     const fetchUserData = async () => {
-      const storedUserData = Cookies.get('userData'); // Получаем данные пользователя из куков
-      if (!storedUserData) { // Проверяем, если userData не существует
-        const jwtToken = Cookies.get("auth_token"); // Получаем токен
-        if (jwtToken) {
-          try {
-            const userResponse = await axios.get(
-              `http://127.0.0.1:8000/api/v1/users/me?details=false&abbreviated=true`,
-              {
-                headers: { Authorization: `Bearer ${jwtToken}` },
-              }
-            );
+      try {
+        const storedUserData = Cookies.get('userData');
+        if (!storedUserData) {
+          const jwtToken = Cookies.get("auth_token");
+          if (jwtToken) {
+            const userResponse = await axios.get(API_URL, {
+              headers: { Authorization: `Bearer ${jwtToken}` },
+            });
 
             if (userResponse.data) {
-              // Формируем объект пользователя из ответа API
               const userData = {
                 name: `${userResponse.data.first_name || ""} ${userResponse.data.last_name || ""}`,
                 email: userResponse.data.external_service_accounts?.yandex || "",
                 role_name: userResponse.data.role_name || "",
                 user_id: userResponse.data.user_id || "",
-                image:
-                  userResponse.data.avatar ||
-                  "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/2c2b2b3d-4d6e-4907-9311-420e881ae780/original=true,quality=90/36331830.jpeg", 
+                image: userResponse.data.avatar || "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/2c2b2b3d-4d6e-4907-9311-420e881ae780/original=true,quality=90/36331830.jpeg",
               };
-
-              // Сохраняем данные пользователя в сессии и куках
               signIn(userData);
             }
-          } catch (error) {
-            console.error("Ошибка при получении данных пользователя:", error);
           }
+        } else {
+          const decryptedData = decryptData(storedUserData);
+          setSession({ user: decryptedData });
         }
-      } else {
-        // Если данные пользователя уже существуют, устанавливаем сессию
-        setSession({ user: JSON.parse(storedUserData) });
+      } catch (error) {
+        setError("Ошибка при получении данных пользователя.");
+        console.error("Ошибка при получении данных пользователя:", error);
       }
     };
 
-    fetchUserData(); // Вызов функции для получения данных при загрузке
+    fetchUserData();
   }, [signIn]);
 
   return (
-    <AuthContext.Provider value={{ session, authentication }}>
+    <AuthContext.Provider value={{ session, authentication, error }}>
       {children}
     </AuthContext.Provider>
   );

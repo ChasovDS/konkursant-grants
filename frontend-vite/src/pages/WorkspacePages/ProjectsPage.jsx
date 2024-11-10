@@ -2,9 +2,14 @@
 
 import React, { useEffect, useState } from 'react';
 import { Typography, Box, Pagination, CircularProgress, Tabs, Tab} from '@mui/material';
-import ProjectsList from '../../components/ProjectsList';
-import ProjectFilter from '../../components/ProjectFilter';
-import CreateProjectModal from '../../components/CreateProjectModal'; // Импортируем модальное окно
+
+
+import ProjectsList from '../../components/WorkspacePages/ProjectPage/ProjectsList';
+import ProjectFilter from '../../components/WorkspacePages/ProjectPage/ComponentsProjectPage/ProjectFilter';
+import CreateProjectModal from '../../components/WorkspacePages/ProjectPage/ComponentsProjectPage/CreateProjectModal'; // Импортируем модальное окно
+
+
+
 import axios from 'axios';
 import Cookies from 'js-cookie';
 

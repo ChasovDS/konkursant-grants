@@ -38,3 +38,10 @@ class SessionCreate(BaseModel):
     user_id: str  # Идентификатор пользователя
     created_at: str  # Время создания сессии
     expires_at: str  # Время окончания сессии
+
+
+class TokenData(BaseModel):
+    token: str
+
+class UserResponse(BaseModel):
+    message: str

@@ -1,136 +1,85 @@
-// src/main.jsx
+// src/main
 
-// import React from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
+import theme from './theme/theme';
+
+// Импорт компонентов страниц
 import App from './App';
-import Layout from './layouts/DashboardLayout.jsx';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Instructions from './pages/Instructions';
-import RedirectPage from './pages/RedirectPage';
+import BaseLayout from './layouts/BaseLayout'; 
+import Layout from './layouts/DashboardLayout';
+import Home from './pages/BasePages/Home';
+import Login from './pages/AuthPage/Login';
+import RedirectPage from './pages/AuthPage/RedirectPage';
+import Instructions from './pages/BasePages/Instructions';
+import Forbidden from './pages/BasePages/Forbidden';
+import NotFound from './pages/BasePages/NotFound';
+
+// Импорт страниц рабочего пространства
 import DashboardPage from './pages/WorkspacePages/DashboardPage';
-import Profile from'./pages/WorkspacePages/ProfilePage';
-import Admin from'./pages/WorkspacePages/AdminPage';
+import Profile from './pages/WorkspacePages/ProfilePage';
+import Admin from './pages/WorkspacePages/AdminPage';
 import ProjectsPage from './pages/WorkspacePages/ProjectsPage';
 import EventsPage from './pages/WorkspacePages/EventsPage';
-import CreateEventPage from './pages/WorkspacePages/CreateEventPage';
-import UpdateEventPage from './pages/WorkspacePages/UpdateEventPage';
+import CreateEventPage from './components/WorkspacePages/EventPage/_CreateEventPage';
+import UpdateEventPage from './components/WorkspacePages/EventPage/_UpdateEventPage';
+
 import Reviews from './pages/WorkspacePages/ReviewPage';
-import ProjectsList from './pages/WorkspacePages/ProjectsList';
-import Test from './components/ComponentsEvents/test'; 
-import UserProfile from './components/workspace/UserProfile'; 
-import EventDetailsPage from './components/ComponentsEvents/_EventDetailsPage'; 
-import ProjectDetails from './components/ViewDetailsProject/_ProjectDetails.jsx'; 
+import ProjectsList from './components/WorkspacePages/ReviewPage/SectionProject/ProjectsList';
 
-import Forbidden from './pages/Forbidden';
-import NotFound from './pages/NotFound'; // Страница 404
-import theme from './theme/theme';
-import { ThemeProvider } from '@mui/material/styles';
+// Импорт компонентов событий
+import UserProfileAdmin from './components/WorkspacePages/AdminPage/ComponentsAdminPage/UserProfileAdmin'; 
+import EventDetailsPage from './components/WorkspacePages/EventPage/_EventDetailsPage'; 
+import ProjectDetails from './components/WorkspacePages/ProjectPage/ComponentsProjectDetails/_ProjectDetails'; 
 
+// Настройка маршрутов
 const router = createBrowserRouter([
   // Маршруты вне Toolpad Core
   {
     path: '/',
-    element: <Home />,
-  },
-  {
-    path: '/login',
-    element: <Login />,
-  },
-  {
-    path: '/redirect-page',
-    element: <RedirectPage />,
+    element: <BaseLayout />, // Используем новый Layout
+    children: [
+      { path: '', element: <Home /> },
+      { path: 'login', element: <Login /> },
+      { path: 'redirect-page', element: <RedirectPage /> },
+      { path: 'forbidden', element: <Forbidden /> },
+      { path: '*', element: <NotFound /> },
+      { path: 'instructions', element: <Instructions /> },
+    ],
   },
 
   // Маршруты Toolpad Core
   {
-    path: '/dashboard', 
+    path: '/workspace',
     element: <App />, // Оборачивает Toolpad Core
     children: [
       {
-        element: <Layout />, // Общий Layout
+        element: <Layout />, // Общий Layout для рабочего пространства
         children: [
-          {
-            path: 'workspace',
-            element: <DashboardPage />, // Страница панели управления
-          },
-          {
-            path: 'workspace/admin-page',
-            element: <Admin />
-          },
-          {
-            path: 'workspace/profile',
-            element: <Profile />, // Страница профиля
-          },
-          {
-            path: 'workspace/profile/:userId', // Новый маршрут для профиля пользователя
-            element: <UserProfile />,
-          },
-          {
-            path: 'workspace/projects',
-            element: <ProjectsPage />, // Страница проектов
-          },
-          {
-            path: 'workspace/projects/:projectId', 
-            element: <ProjectDetails />,
-          },
-          {
-            path: 'workspace/events',
-            element: <EventsPage />, // Страница событий
-          },
-          {
-            path: 'workspace/events/:eventId',
-            element: <EventDetailsPage />, 
-          },
-          {
-            path: 'workspace/events/edit/:eventId',
-            element: <EventDetailsPage />, 
-          },
-          {
-            path: 'workspace/events/create',
-            element: <CreateEventPage />, 
-          },
-          {
-            path: 'workspace/events/update',
-            element: <UpdateEventPage />, 
-          },
-          {
-            path: 'workspace/reviews',
-            element: <Reviews />, // Страница отзывов
-          },
-          {
-            path: 'workspace/reviews/:eventId/projects',
-            element: <ProjectsList />, 
-          },
-          {
-            path: 'workspace/instructions',
-            element: <Instructions />, // Страница отзывов
-          },
-          {
-            path: 'workspace/test',
-            element: <Test />, // Страница отзывов
-          },
+          { path: '', element: <DashboardPage /> }, // Главная страница рабочего пространства
+          { path: 'admin-page', element: <Admin /> },
+          { path: 'profile', element: <Profile /> },
+          { path: 'profile/:userId', element: <UserProfileAdmin /> },
+          { path: 'projects', element: <ProjectsPage /> },
+          { path: 'projects/:projectId', element: <ProjectDetails /> },
+          { path: 'events', element: <EventsPage /> },
+          { path: 'events/:eventId', element: <EventDetailsPage /> },
+          { path: 'events/edit/:eventId', element: <UpdateEventPage /> },
+          { path: 'events/create', element: <CreateEventPage /> },
+          { path: 'reviews', element: <Reviews /> },
+          { path: 'reviews/:eventId/projects', element: <ProjectsList /> },
+          { path: 'instructions', element: <Instructions /> },
         ],
       },
     ],
   },
-
-  // Страница 404
-  {
-    path: '*',
-    element: <NotFound />,
-  },
-  {
-    path: '/forbidden',
-    element: <Forbidden  />,
-  },
 ]);
 
+// Рендеринг приложения
 ReactDOM.createRoot(document.getElementById('root')).render(
- // <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <RouterProvider router={router} />
-    </ThemeProvider>
-//  </React.StrictMode>,
+  <ThemeProvider theme={theme}>
+    <RouterProvider router={router} />
+  </ThemeProvider>
 );

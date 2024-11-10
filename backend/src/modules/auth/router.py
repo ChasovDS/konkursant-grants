@@ -1,9 +1,10 @@
 # src/modules/auth/router.py
 from fastapi import APIRouter, HTTPException, Depends, Response, Cookie
-import hashlib
+from fastapi.responses import JSONResponse
 from src.modules.auth.auth import get_user_info, create_or_load_user_yandex
 from src.modules.auth.utils import create_jwt, hash_password, verify_password
 from src.modules.profile.schemas import JwtResponse
+from src.modules.auth.schemas import TokenData, UserResponse
 
 # Создаем экземпляр маршрутизатора
 router = APIRouter()
@@ -25,37 +26,48 @@ async def dev_set_token(token: str, response: Response):
     response.set_cookie(key="auth_token", value=token, httponly=True, secure=True)
     return {"message": "JWT токен успешно установлен в куки"}
 
-@router.post("/auth/yandex", response_model=JwtResponse)
-async def authenticate_with_yandex(token_data: dict):
+
+@router.post("/auth/yandex", response_model=UserResponse)
+async def authenticate_with_yandex(token_data: TokenData):
     """
     Аутентификация пользователя через Яндекс.
 
     Параметры:
-    - token_data: словарь, содержащий токен для аутентификации.
+    - token_data: объект, содержащий токен для аутентификации.
 
     Возвращает:
-    - UserResponse: JWT-токен.
+    - UserResponse: сообщение об успешной аутентификации.
     """
-    token = token_data.get("token")
-    user_info = await get_user_info(token)
+    token = token_data.token
+    user_info: Dict[str, Any] = await get_user_info(token)
 
     # Проверяем, что получены корректные данные пользователя
-    if "id" not in user_info or "default_email" not in user_info:
+    if not user_info or "id" not in user_info or "default_email" not in user_info:
         raise HTTPException(status_code=400, detail="Некорректные данные пользователя")
 
     # Создаем или загружаем пользователя в базу данных
     user_data_list = await create_or_load_user_yandex(user_info)
 
+    # Проверяем, что данные пользователя корректные
+    if not user_data_list or len(user_data_list) < 3:
+        raise HTTPException(status_code=500, detail="Ошибка при загрузке данных пользователя")
+
     # Извлекаем данные из списка
     user_id, email_ya, role = user_data_list
 
-    # Хешируем роль пользователя
-    hashed_role = hashlib.sha256(role.encode()).hexdigest()
-
     # Создаем JWT-токен для аутентификации
     jwt_token = create_jwt(user_id, email_ya, role)
-    # Возвращаем JWT-токен и роль пользователя
-    return JwtResponse(token=jwt_token, role=hashed_role)
 
+    # Устанавливаем куки с JWT токеном
+    response = JSONResponse(content={"message": "Аутентификация прошла успешно."})
+    response.set_cookie(
+        key="auth_token",
+        value=jwt_token,
+        httponly=False,
+        secure=True,
+        samesite='Strict',
+        expires=7 * 24 * 60 * 60  # 7 дней
+    )
+    return response
 
 

@@ -1,0 +1,52 @@
+/* src/pages/Home.css */
+@import url('https://fonts.googleapis.com/css2?family=Furore&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap');
+
+.home-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 90vh;
+  text-align: center;
+  background-size: cover;
+  position: relative;
+  opacity: 0.8; /* Полупрозрачность фона */
+}
+
+.main-title {
+  font-family: 'Furore', sans-serif;
+  font-size: 4rem;
+  margin-bottom: 20px;
+  color: #195783; /* Цвет текста */
+}
+
+.main-title-or {
+    font-family: 'Furore', sans-serif;
+    font-size: 4rem;
+    margin-bottom: 20px;
+    color: #fca12f; /* Цвет текста */
+  }
+  
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  gap: 30px; /* Отступ между кнопками */
+}
+
+.button {
+    font-family: 'Nunito', sans-serif;
+    padding: 10px 30px; /* Размер кнопки */
+    border: 2px solid #195783; /* Цвет рамки */
+    color: #195783; /* Цвет текста */
+    text-decoration: none; /* Убираем подчеркивание */
+    font-weight: bold; /* Жирный шрифт */
+    border-radius: 4px; /* Закругленные углы */
+    transition: all 0.3s ease; /* Плавный переход для всех свойств */
+}
+
+.button:hover {
+    border: 2px solid #fca12f; /* Цвет рамки при наведении */
+    color: #fca12f; /* Цвет текста при наведении */
+}
