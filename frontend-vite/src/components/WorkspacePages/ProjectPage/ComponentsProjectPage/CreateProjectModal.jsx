@@ -15,11 +15,10 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import axios from 'axios';
 import { styled } from '@mui/material/styles';
-import Cookies from 'js-cookie';
 import { UploadFile, Description } from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
+import { createEmptyProject, createProjectFromFile } from '../../../../api/Project_API';
 
 // Стили для кастомной кнопки
 const CustomButton = styled(Button)(({ theme }) => ({
@@ -53,7 +52,7 @@ const style = {
 
 const CreateProjectModal = ({ open, handleClose, onProjectCreated }) => {
   const [file, setFile] = useState(null);
-  const [isEmptyProject, setIsEmptyProject] = useState(false); // Изменено на false (ДОСТУПНОСТЬ ВЫБОРА РЕЖИМА СОЗДАНИЯ ПРОЕКТА)
+  const [isEmptyProject, setIsEmptyProject] = useState(false);
   const [templateType, setTemplateType] = useState('ФИЗ_ЛИЦО');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -73,23 +72,12 @@ const CreateProjectModal = ({ open, handleClose, onProjectCreated }) => {
   const handleCreateProject = async () => {
     setLoading(true);
     setError('');
-    const jwtToken = Cookies.get('auth_token');
-    const endpoint = isEmptyProject
-      ? `http://127.0.0.1:8000/api/v1/projects/create-empty?project_template=${encodeURIComponent(templateType)}`
-      : `http://127.0.0.1:8000/api/v1/projects/create-from-file?project_template=${encodeURIComponent(templateType)}`;
-
-    const formData = new FormData();
-    if (!isEmptyProject && file) {
-      formData.append('input_file', file);
-    }
-
     try {
-      await axios.post(endpoint, formData, {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      if (isEmptyProject) {
+        await createEmptyProject(templateType);
+      } else if (file) {
+        await createProjectFromFile(file, templateType);
+      }
       onProjectCreated(); // Обновление списка проектов
       handleClose(); // Закрытие модального окна
     } catch (error) {
@@ -102,7 +90,7 @@ const CreateProjectModal = ({ open, handleClose, onProjectCreated }) => {
   // Функция для сброса состояния формы
   const resetForm = () => {
     setFile(null);
-    setIsEmptyProject(false); // Изменено на false (ДОСТУПНОСТЬ ВЫБОРА РЕЖИМА СОЗДАНИЯ ПРОЕКТА)
+    setIsEmptyProject(false);
     setTemplateType('ФИЗ_ЛИЦО');
   };
 

@@ -11,8 +11,6 @@ import App from './App';
 import BaseLayout from './layouts/BaseLayout'; 
 import Layout from './layouts/DashboardLayout';
 import Home from './pages/BasePages/Home';
-import Login from './pages/AuthPage/Login';
-import RedirectPage from './pages/AuthPage/RedirectPage';
 import Instructions from './pages/BasePages/Instructions';
 import Forbidden from './pages/BasePages/Forbidden';
 import NotFound from './pages/BasePages/NotFound';
@@ -33,6 +31,12 @@ import ProjectsList from './components/WorkspacePages/ReviewPage/SectionProject/
 import UserProfileAdmin from './components/WorkspacePages/AdminPage/ComponentsAdminPage/UserProfileAdmin'; 
 import EventDetailsPage from './components/WorkspacePages/EventPage/_EventDetailsPage'; 
 import ProjectDetails from './components/WorkspacePages/ProjectPage/ComponentsProjectDetails/_ProjectDetails'; 
+
+
+
+import Login from './pages/AuthPage/Login';
+import RedirectPage from './pages/AuthPage/RedirectPage';
+
 
 // Настройка маршрутов
 const router = createBrowserRouter([

@@ -1,12 +1,13 @@
+// src\components\WorkspacePages\ProjectPage\ComponentsProjectPage\ProjectCard.jsx
+
 import React, { useState } from 'react';
-import axios from 'axios';
-import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, Typography, Button, Box, Chip } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Edit, Archive, Delete } from '@mui/icons-material';
 import EventIcon from '@mui/icons-material/Event';
 import DeleteProjectModal from './DeleteProjectModal';
+import { deleteProject } from '../../../../api/Project_API';
 
 const AnimatedCard = styled(Card)(({ theme }) => ({
   margin: '10px',
@@ -59,10 +60,6 @@ const ProjectCard = ({ project, onProjectCreated }) => {
     alert(`Архивировать проект: ${project_name}`);
   };
 
-  const handleRateProject = () => {
-    alert(`Оценить проект: ${project_name}`);
-  };
-
   const handleOpenDeleteModal = () => {
     setDeleteModalOpen(true);
   };
@@ -72,20 +69,13 @@ const ProjectCard = ({ project, onProjectCreated }) => {
   };
 
   const handleDeleteConfirm = async () => {
-    const jwtToken = Cookies.get('auth_token');
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/v1/projects/${project_id}`, {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-        },
-      });
-
+      await deleteProject(project_id);
       setDeleteModalOpen(false);
       if (typeof onProjectCreated === 'function') {
         onProjectCreated();
       }
     } catch (error) {
-      console.error('Ошибка при удалении проекта:', error);
       alert(`Ошибка при удалении проекта "${project_name}": ${error.response?.data?.message || 'Неизвестная ошибка'}`);
     }
   };

@@ -1,8 +1,7 @@
-// src/components/workspace/AdminTabs/RoleModal.jsx
+// src/components/WorkspacePages/AdminPage/ComponentsAdminPage/RoleModal.jsx
 import React, { useState } from 'react';
 import { Modal, Box, Typography, FormControl, Select, MenuItem, Button, Snackbar, Alert } from '@mui/material';
-import Cookies from 'js-cookie';
-import axios from 'axios';
+import { updateUserRole } from '../../../../api/Admin_API'; // Обновленный импорт
 
 const ModalStyle = {
     position: 'absolute',
@@ -23,23 +22,14 @@ const RoleModal = ({ open, onClose, user, onRoleUpdated }) => {
     const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
     const handleUpdateRole = async () => {
-        const jwtToken = Cookies.get('auth_token');
         try {
-            const response = await axios.patch(`http://127.0.0.1:8000/api/v1/user/role/${user.user_id}`, {
-                role: selectedRole,
-            }, {
-                headers: {
-                    Authorization: `Bearer ${jwtToken}`,
-                    'Content-Type': 'application/json',
-                },
-            });
+            await updateUserRole(user.user_id, selectedRole);
             setSnackbarMessage('Роль успешно обновлена!');
             setSnackbarSeverity('success');
             setSnackbarOpen(true);
             onRoleUpdated(); // Вызываем функцию обновления данных
             onClose();
         } catch (error) {
-            console.error('Ошибка при обновлении роли:', error.response ? error.response.data : error.message);
             setSnackbarMessage('Ошибка при обновлении роли.');
             setSnackbarSeverity('error');
             setSnackbarOpen(true);

@@ -152,6 +152,7 @@ async def create_project_from_file(token: dict, project_template: str, file_path
     new_project = ProjectFICPerson(
         create_date=datetime.utcnow(),
         update_date=datetime.utcnow(),
+        assigned_event_id=None,
         author_id=token.get("user_id"),
         author_name=processed_data.get("author_name"),
         project_name=processed_data.get("project_name"),

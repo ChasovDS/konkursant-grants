@@ -16,62 +16,48 @@ import {
   Alert,
 } from '@mui/material';
 import { Delete, Edit } from '@mui/icons-material';
-import axios from 'axios';
+import { updateAdditionalFiles } from '../../../../api/Project_API';
 
 const AdditionalFilesTab = ({ projectId, jwtToken, data, refreshData }) => {
-  const [files, setFiles] = useState(data || []); // Инициализация состояния файлов
-  const [newFile, setNewFile] = useState({ file_description: '', file_url: '' }); // Новые файлы
-  const [editIndex, setEditIndex] = useState(null); // Индекс редактируемого файла
-  const [openSnackbar, setOpenSnackbar] = useState(false); // Состояние Snackbar
+  const [files, setFiles] = useState(data || []);
+  const [newFile, setNewFile] = useState({ file_description: '', file_url: '' });
+  const [editIndex, setEditIndex] = useState(null);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  // Обработчик добавления или редактирования файла
   const handleAddOrEditFile = () => {
     if (editIndex !== null) {
-      // Если редактируем файл
       const updatedFiles = files.map((file, index) =>
         index === editIndex ? { ...newFile, files_id: file.files_id } : file
       );
       setFiles(updatedFiles);
       setEditIndex(null);
     } else {
-      // Добавление нового файла
       setFiles([...files, { ...newFile, files_id: Date.now().toString() }]);
     }
-    setNewFile({ file_description: '', file_url: '' }); // Сброс формы
+    setNewFile({ file_description: '', file_url: '' });
   };
 
-  // Обработчик закрытия Snackbar
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
   };
 
-  // Обработчик редактирования файла
   const handleEditFile = (index) => {
     setEditIndex(index);
-    setNewFile(files[index]); // Заполнение формы данными файла
+    setNewFile(files[index]);
   };
 
-  // Обработчик удаления файла
   const handleDeleteFile = (index) => {
     const updatedFiles = files.filter((_, i) => i !== index);
     setFiles(updatedFiles);
   };
 
-  // Обработчик сохранения файлов
   const handleSaveFiles = async () => {
     try {
-      await axios.patch(`http://127.0.0.1:8000/api/v1/projects/${projectId}/additional-files`, {
-        additional_files: files,
-      }, {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-        },
-      });
-      setOpenSnackbar(true); // Открытие Snackbar
-      refreshData(); // Обновляем данные проекта
+      await updateAdditionalFiles(projectId, files);
+      setOpenSnackbar(true);
+      refreshData();
     } catch (error) {
       console.error('Ошибка при сохранении файлов:', error);
-      // Можно добавить обработку ошибки, например, уведомление пользователя
     }
   };
 

@@ -9,7 +9,9 @@ import CryptoJS from "crypto-js"; // Импортируем библиотеку
 const AuthContext = React.createContext();
 
 // Константа для API URL
-const API_URL = "http://127.0.0.1:8000/api/v1/users/me?details=false&abbreviated=true";
+const API_URL = import.meta.env.VITE_API_URL;
+
+const URL_AUTH = `${API_URL}/users/me?details=false&abbreviated=true`;
 
 // Ключ для шифрования (в реальном приложении храните его в переменных окружения!)
 const ENCRYPTION_KEY = "your-encryption-key";
@@ -61,7 +63,7 @@ const AuthProvider = ({ children }) => {
         if (!storedUserData) {
           const jwtToken = Cookies.get("auth_token");
           if (jwtToken) {
-            const userResponse = await axios.get(API_URL, {
+            const userResponse = await axios.get(URL_AUTH, {
               headers: { Authorization: `Bearer ${jwtToken}` },
             });
 

@@ -117,6 +117,24 @@ const UserProfileEdit = ({
           <CardContent>
             <Typography variant="h6" sx={{ mb: 2 }}>Личная информация</Typography>
             <Grid container spacing={2}>
+            <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Фамилия"
+                  placeholder="Введите вашу фамилию"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon />
+                      </InputAdornment>
+                    ),
+                  }}
+                  value={formData.last_name || ''}
+                  name="last_name"
+                  onChange={onChange}
+                  disabled={!isEditing}
+                />
+              </Grid>
               <Grid item xs={12} sm={4}>
                 <TextField
                   fullWidth
@@ -131,24 +149,6 @@ const UserProfileEdit = ({
                   }}
                   value={formData.first_name || ''}
                   name="first_name"
-                  onChange={onChange}
-                  disabled={!isEditing}
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  fullWidth
-                  label="Фамилия"
-                  placeholder="Введите вашу фамилию"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PersonIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                  value={formData.last_name || ''}
-                  name="last_name"
                   onChange={onChange}
                   disabled={!isEditing}
                 />

@@ -1,7 +1,6 @@
 // src/components/workspace/AdminTabs/ProjectListAdmin.jsx
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Table,
@@ -23,11 +22,10 @@ import {
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import TitleIcon from "@mui/icons-material/Title";
-import Cookies from "js-cookie";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
-import DeleteProjectModal from "../ProjectPage/ComponentsProjectPage/DeleteProjectModal"; // Импортируем модальное окно
-
+import DeleteProjectModal from "../ProjectPage/ComponentsProjectPage/DeleteProjectModal";
+import { fetchProjects, deleteProject } from "../../../api/Admin_API"; // Обновленный импорт
 
 const ProjectsList = () => {
   const { eventId } = useParams();
@@ -44,35 +42,21 @@ const ProjectsList = () => {
 
   const navigate = useNavigate();
 
+  const loadProjects = async () => {
+    setLoading(true);
+    try {
+      const { projects, totalCount } = await fetchProjects(page, rowsPerPage, authorSearchTerm, titleSearchTerm);
+      setProjects(projects);
+      setTotalCount(totalCount);
+    } catch (error) {
+      setError("Не удалось загрузить проекты. Пожалуйста, попробуйте позже.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchProjects = async () => {
-      const jwtToken = Cookies.get("auth_token");
-      try {
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/v1/projects-all`, // Изменённый эндпоинт
-          {
-            headers: { Authorization: `Bearer ${jwtToken}` },
-            params: {
-              page,
-              limit: rowsPerPage,
-              author: authorSearchTerm.trim(),
-              title: titleSearchTerm.trim(),
-            },
-          }
-        );
-        setProjects(response.data);
-        const totalCountFromHeader = response.headers["x-total-count"];
-        setTotalCount(
-          totalCountFromHeader ? parseInt(totalCountFromHeader, 10) : 0
-        );
-      } catch (error) {
-        console.error("Ошибка при загрузке данных:", error);
-        setError("Не удалось загрузить проекты. Пожалуйста, попробуйте позже.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProjects();
+    loadProjects();
   }, [eventId, page, rowsPerPage, authorSearchTerm, titleSearchTerm]);
 
   const handleViewProject = (projectId) => {
@@ -84,21 +68,14 @@ const ProjectsList = () => {
   };
 
   const handleDeleteProject = async () => {
-    const jwtToken = Cookies.get("auth_token");
     try {
-      await axios.delete(
-        `http://127.0.0.1:8000/api/v1/projects/${projectToDelete}`,
-        {
-          headers: { Authorization: `Bearer ${jwtToken}` },
-        }
-      );
+      await deleteProject(projectToDelete);
       setProjects((prevProjects) =>
         prevProjects.filter((project) => project.project_id !== projectToDelete)
       );
       setDeleteModalOpen(false);
       setProjectToDelete(null);
     } catch (error) {
-      console.error("Ошибка при удалении проекта:", error);
       setError("Не удалось удалить проект. Пожалуйста, попробуйте позже.");
     }
   };

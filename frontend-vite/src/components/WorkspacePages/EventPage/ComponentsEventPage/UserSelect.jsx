@@ -1,5 +1,4 @@
-// src/components/ComponentsEvents/UserSelect.jsx
-
+// src/components/WorkspacePages/EventPage/ComponentsEventPage/UserSelect.jsx
 import React, { useState, useEffect } from 'react';
 import {
   FormControl,
@@ -10,7 +9,7 @@ import {
   Chip,
 } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
-import axios from 'axios';
+import { fetchUsers } from '../../../../api/Event_API';
 
 const UserSelect = ({ role, selectedUsers, setSelectedUsers }) => {
   const [users, setUsers] = useState([]);
@@ -18,23 +17,21 @@ const UserSelect = ({ role, selectedUsers, setSelectedUsers }) => {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
 
-  const fetchUsers = async (role, search) => {
+  const loadUsers = async (role, search) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/v1/users/role/${role}`, {
-        params: { full_name: search },
-      });
-      setUsers(response.data);
+      const usersData = await fetchUsers(role, search);
+      setUsers(usersData);
     } catch (error) {
-      console.error('Ошибка при получении пользователей:', error);
+      setError('Ошибка при получении пользователей');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers(role, search);
+    loadUsers(role, search);
   }, [role, search]);
 
   return (

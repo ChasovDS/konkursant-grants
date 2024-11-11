@@ -1,3 +1,5 @@
+// src/components/ViewDetailsProject/tabs/ExpertReviews.jsx
+
 import React, { useState, useEffect } from 'react';
 import {
   Typography,
@@ -14,7 +16,7 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material';
-import axios from 'axios';
+import { getReview, saveReview, deleteReview } from '../../../../api/Project_API';
 
 const criteriaTranslations = {
   team_experience_competencies: 'Опыт и компетенции команды',
@@ -29,26 +31,20 @@ const criteriaTranslations = {
   project_budget_realism: 'Реалистичность бюджета',
 };
 
-const ExpertReviews = ({ projectId, jwtToken }) => {
+const ExpertReviews = ({ projectId }) => {
   const [ratings, setRatings] = useState({});
   const [comment, setComment] = useState('');
   const [reviewId, setReviewId] = useState(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [openDialog, setOpenDialog] = useState(false); // Для управления модальным окном
-  const [errorMessage, setErrorMessage] = useState(''); // Для управления сообщением об ошибке
+  const [openDialog, setOpenDialog] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // Функция для загрузки проверки
   const loadReview = async () => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/v1/reviews/expert/project/${projectId}`, {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-        },
-      });
-      const existingReview = response.data[0]; // Предполагаем, что API возвращает массив
+      const existingReview = await getReview(projectId);
       if (existingReview) {
         setReviewId(existingReview.review_id);
-        setRatings(existingReview.criteria_evaluation || {}); // Убедимся, что ratings корректно устанавливаем
+        setRatings(existingReview.criteria_evaluation || {});
         setComment(existingReview.expert_comment || '');
       }
     } catch (err) {
@@ -81,29 +77,7 @@ const ExpertReviews = ({ projectId, jwtToken }) => {
     }
 
     try {
-      const endpoint = reviewId
-        ? `http://127.0.0.1:8000/api/v1/reviews/${reviewId}` 
-        : `http://127.0.0.1:8000/api/v1/reviews`;
-
-      const method = reviewId ? 'put' : 'post';
-      const payload = {
-        criteria_evaluation: ratings,
-        expert_comment: comment,
-      };
-
-      if (!reviewId) {
-        payload.project_id = projectId;  
-      }
-
-      await axios({
-        method: method,
-        url: endpoint,
-        data: payload,
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-        }
-      });
-
+      await saveReview(reviewId, projectId, ratings, comment);
       setOpenSnackbar(true);
     } catch (err) {
       setErrorMessage(err.response ? err.response.data.detail : 'Ошибка при отправке проверки.');
@@ -113,13 +87,9 @@ const ExpertReviews = ({ projectId, jwtToken }) => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/v1/reviews/${reviewId}`, {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-        }
-      });
+      await deleteReview(reviewId);
       setOpenSnackbar(true);
-      setReviewId(null); // Сбросим ID отзыва после удаления
+      setReviewId(null);
       setRatings({});
       setComment('');
       handleCloseDialog();
@@ -203,7 +173,6 @@ const ExpertReviews = ({ projectId, jwtToken }) => {
         </Alert>
       </Snackbar>
       
-      {/* Модальное окно для подтверждения удаления */}
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>Подтверждение удаления</DialogTitle>
         <DialogContent>

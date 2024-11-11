@@ -10,9 +10,7 @@ import {
   Paper,
   Link as MuiLink,
 } from '@mui/material';
-import axios from 'axios';
-import Cookies from 'js-cookie';
-
+import { fetchProjectDetails } from '../../../../api/Project_API';
 import ProjectInfoCard from './ProjectInfoCard';
 import GeneralInfoTab from './GeneralInfoTab';
 import ProjectInfoTab from './ProjectInfoTab';
@@ -33,7 +31,6 @@ const ProjectDetails = () => {
   const navigate = useNavigate();
   const [projectData, setProjectData] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
-  const jwtToken = Cookies.get('auth_token');
   const allowedRolesForExpertReviews = ['admin', 'moderator', 'event_manager', 'expert'];
   const { session } = useContext(AuthContext);
   
@@ -56,22 +53,19 @@ const ProjectDetails = () => {
     ] : []),
   ];
 
-  const fetchProjectDetails = async () => {
-    try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/v1/projects/${projectId}`, {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-        },
-      });
-      setProjectData(response.data);
-    } catch (error) {
-      console.error('Ошибка при загрузке данных проекта:', error);
-    }
-  };
 
   useEffect(() => {
-    fetchProjectDetails();
-  }, [projectId, jwtToken]);
+    const loadProjectDetails = async () => {
+      try {
+        const data = await fetchProjectDetails(projectId);
+        setProjectData(data);
+      } catch (error) {
+        console.error('Ошибка при загрузке данных проекта:', error);
+      }
+    };
+
+    loadProjectDetails();
+  }, [projectId]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -113,15 +107,14 @@ const ProjectDetails = () => {
         return (
           <AdditionalFilesTabs
             projectId={projectId}
-            jwtToken={jwtToken}
             projectData={projectData}
             refreshData={fetchProjectDetails}
           />
         );
       case 'ListExpertReviewsTab':
-        return <ListExpertReviewsTab data={tabData} projectId={projectId} jwtToken={jwtToken} />;
+        return <ListExpertReviewsTab data={tabData} projectId={projectId} />;
       case 'ExpertReviewsTab':
-        return <ExpertReviewsTab data={tabData} projectId={projectId} jwtToken={jwtToken} />;
+        return <ExpertReviewsTab data={tabData} projectId={projectId}/>;
       default:
         return <Typography>Вкладка находится в разработке.</Typography>;
     }

@@ -45,3 +45,4 @@ app.add_middleware(
 @app.get("/", tags=["Стартовая страница"])
 async def root():
     return {"message": "Добро пожаловать в API Конкурсант"}
+

@@ -181,4 +181,5 @@ export const NAVIGATION = {
 
 export const BRANDING = {
   title: "Конкурсант.Гранты",
+  logo: <img src="https://img.icons8.com/?size=100&id=9762&format=png&color=1976d2" alt="Трофей" />, // Иконка трофея
 };

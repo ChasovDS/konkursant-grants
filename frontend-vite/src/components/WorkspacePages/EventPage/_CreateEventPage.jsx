@@ -1,16 +1,15 @@
+
 // src/pages/WorkspacePages/CreateEventPage.jsx
 import React from 'react';
 import EventForm from './ComponentsEventPage/EventForm';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
+import { submitEvent } from '../../../api/Event_API';
 
 const CreateEventPage = () => {
-  // Получаем JWT-токен из куки
   const jwtToken = Cookies.get('auth_token');
   const navigate = useNavigate();
 
-  // Функция для подготовки данных события перед отправкой на сервер
   const prepareEventData = (eventData) => ({
     event_logo: eventData.logoBASE,
     event_full_title: eventData.title,
@@ -31,45 +30,21 @@ const CreateEventPage = () => {
     event_experts: eventData.experts,
   });
 
-  // Функция для сохранения черновика события
-  const handleSaveDraft = async (eventData) => {
+  const handleEventSubmission = async (eventData, publishStatus) => {
     const eventDetails = prepareEventData(eventData);
-    eventDetails.event_publish = 'BLACKWELL'; // Устанавливаем статус "черновик"
-    console.log("Данные для черновика: ", eventDetails);
+    eventDetails.event_publish = publishStatus;
+    console.log(`Данные для ${publishStatus}: `, eventDetails);
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/v1/events', eventDetails, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${jwtToken}`,
-        },
-      });
-      console.log('Черновик сохранен:', response.data);
-      navigate('/workspace/events'); // Переадресация на страницу событий
+      await submitEvent(eventDetails, jwtToken);
+      navigate('/workspace/events');
     } catch (error) {
-      console.error('Ошибка при сохранении черновика:', error.response?.data || error.message);
+      console.error(`Ошибка при ${publishStatus === 'BLACKWELL' ? 'сохранении черновика' : 'публикации мероприятия'}:`, error.message);
     }
   };
 
-  // Функция для публикации события
-  const handlePublish = async (eventData) => {
-    const eventDetails = prepareEventData(eventData);
-    eventDetails.event_publish = 'READY_EVENT'; // Устанавливаем статус "опубликовано"
-    console.log("Данные для публикации: ", eventDetails);
-
-    try {
-      const response = await axios.post('http://127.0.0.1:8000/api/v1/events', eventDetails, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${jwtToken}`,
-        },
-      });
-      console.log('Мероприятие опубликовано:', response.data);
-      navigate('/workspace/events'); // Переадресация на страницу событий
-    } catch (error) {
-      console.error('Ошибка при публикации мероприятия:', error.response?.data || error.message);
-    }
-  };
+  const handleSaveDraft = (eventData) => handleEventSubmission(eventData, 'BLACKWELL');
+  const handlePublish = (eventData) => handleEventSubmission(eventData, 'READY_EVENT');
 
   return (
     <EventForm 

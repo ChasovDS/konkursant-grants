@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useContext  } from "react";
-import axios from "axios";
+import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   Table,
@@ -24,8 +23,8 @@ import {
 import PersonIcon from "@mui/icons-material/Person";
 import TitleIcon from "@mui/icons-material/Title";
 import StarRateIcon from "@mui/icons-material/StarRate";
-import Cookies from "js-cookie";
 import { AuthContext } from '../../../ComponentsApp/AuthProvider';
+import { fetchProjects, fetchCurrentUser } from '../../../../api/Review_API';
 
 const ProjectsList = () => {
   const { session } = useContext(AuthContext);
@@ -43,51 +42,32 @@ const ProjectsList = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      const jwtToken = Cookies.get("auth_token");
+    const loadProjects = async () => {
       try {
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/v1/events/${eventId}/projects`,
-          {
-            headers: { Authorization: `Bearer ${jwtToken}` },
-            params: {
-              page,
-              limit: rowsPerPage,
-              author: authorSearchTerm.trim(),
-              title: titleSearchTerm.trim(),
-              rating: ratingFilter,
-            },
-          }
+        const { data, totalCount } = await fetchProjects(
+          eventId,
+          page,
+          rowsPerPage,
+          authorSearchTerm,
+          titleSearchTerm,
+          ratingFilter
         );
-        setProjects(response.data);
-        const totalCountFromHeader = response.headers["x-total-count"];
-        setTotalCount(parseInt(totalCountFromHeader, 10));
+        setProjects(data);
+        setTotalCount(totalCount);
 
-  
-
-        // Проверяем user_id в session.user
         if (session.user && session.user.user_id) {
           setUserId(session.user.user_id);
         } else {
-          // Если user_id нет, выполняем запрос для получения user_id
-          const userResponse = await axios.get(
-            `http://127.0.0.1:8000/api/v1/users/me?details=false&abbreviated=true`,
-            {
-              headers: { Authorization: `Bearer ${jwtToken}` },
-            }
-          );
-          setUserId(userResponse.data.user_id);
+          const userId = await fetchCurrentUser();
+          setUserId(userId);
         }
-
-
       } catch (error) {
-        console.error("Ошибка при загрузке данных:", error);
-        setError("Не удалось загрузить проекты. Пожалуйста, попробуйте позже.");
+        setError(error.message);
       } finally {
         setLoading(false);
       }
     };
-    fetchProjects();
+    loadProjects();
   }, [
     eventId,
     page,
@@ -107,7 +87,7 @@ const ProjectsList = () => {
 
   const handleRatingFilterChange = (event) => {
     setRatingFilter(event.target.value);
-    setPage(1); // Сбрасываем страницу при изменении фильтра
+    setPage(1);
   };
 
   if (loading) return <CircularProgress />;

@@ -5,8 +5,7 @@ import EventsList from '../../components/WorkspacePages/EventPage/EventsList';
 import EventFilter from '../../components/WorkspacePages/EventPage/ComponentsEventPage/EventFilter';
 import Paginate from '../../components/WorkspacePages/EventPage/ComponentsEventPage/Paginate';
 
-import axios from 'axios';
-import Cookies from 'js-cookie';
+import { fetchEvents } from '../../api/Event_API';
 
 const EventsPage = () => {
   const [events, setEvents] = useState([]);
@@ -17,27 +16,22 @@ const EventsPage = () => {
   const [error, setError] = useState(null);
   const limit = 6;
 
-  const fetchEvents = useCallback(async () => {
+  const loadEvents = useCallback(async () => {
     setLoading(true);
-    const jwtToken = Cookies.get('auth_token');
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/v1/events', {
-        headers: { Authorization: `Bearer ${jwtToken}` },
-        params: { page, limit, ...filters },
-      });
-      setEvents(response.data.events);
-      setTotalEvents(response.data.total || 0);
+      const { events, total } = await fetchEvents(page, limit, filters);
+      setEvents(events);
+      setTotalEvents(total);
     } catch (err) {
-      console.error('Ошибка при получении списка мероприятий:', err);
-      setError('Не удалось загрузить мероприятия. Попробуйте позже.');
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   }, [page, filters]);
 
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    loadEvents();
+  }, [loadEvents]);
 
   useEffect(() => {
     setPage(1);

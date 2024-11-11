@@ -22,11 +22,12 @@ const ProjectsPage = () => {
   const [filters, setFilters] = useState({});
   const [modalOpen, setModalOpen] = useState(false); // Состояние для открытия модального окна
   const limit = 10;
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const fetchProjects = async (page, filters = {}) => {
     const jwtToken = Cookies.get('auth_token');
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/v1/projects/me?skip=${(page - 1) * limit}&limit=${limit}`, {
+      const response = await axios.get(`${API_URL}/projects/me?skip=${(page - 1) * limit}&limit=${limit}`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
         },
@@ -108,9 +109,20 @@ const ProjectsPage = () => {
               />
             </>
           ) : (
-            <Typography variant="body1" sx={{ mt: 2 }}>
-              Проекты не найдены.
+            <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '20vh', // Занимает всю высоту экрана
+              backgroundColor: '#f5f5f5', // Светлый фон для контраста
+              textAlign: 'center',
+            }}
+          >
+            <Typography variant="body1" sx={{ mt: 1, color: '#666' }}>
+              Добавьте проекты, чтобы начать работу.
             </Typography>
+          </Box>
           )}
         </>
       ) : (

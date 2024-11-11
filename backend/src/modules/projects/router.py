@@ -30,7 +30,8 @@ from src.modules.projects.schemas import (
 
 # Импортируем данные проекта
 from src.modules.projects.project_data import tab_calendar_plan, expenses, cofinancing
-from src.database import projects_data_collection
+from src.database import projects_data_collection, events_data_collection
+
 
 router = APIRouter()
 
@@ -312,17 +313,35 @@ async def delete_project(project_id: str, token: dict = Depends(decode_jwt)):
     Удаление проекта по его ID.
     """
     await check_permissions(token, SERVICE_NAME, project_id=project_id)
+
+    # Проверяем корректность формата project_id
     try:
         obj_id = ObjectId(project_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Неверный формат project_id")
 
-    result = await projects_data_collection.delete_one({"_id": obj_id})
-    if result.deleted_count == 0:
+    # Получаем проект из базы данных
+    project = await projects_data_collection.find_one({"_id": obj_id})
+    if not project:
         raise HTTPException(status_code=404, detail="Проект не найден")
 
-    return {"detail": "Проект успешно удалён"}
+    # Получаем ID мероприятия из поля assigned_event_id
+    event_id = project.get("assigned_event_id")
+    if event_id:
+        # Удаляем проект из участников мероприятия
+        result = await events_data_collection.update_one(
+            {"_id": ObjectId(event_id)},
+            {"$pull": {"event_participants": {"projects_id": project_id}}}
+        )
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Участник с указанным projects_id не найден в мероприятии")
 
+    # Удаляем проект
+    delete_result = await projects_data_collection.delete_one({"_id": obj_id})
+    if delete_result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Проект не найден для удаления")
+
+    return {"detail": "Проект успешно удалён"}
 
 
 

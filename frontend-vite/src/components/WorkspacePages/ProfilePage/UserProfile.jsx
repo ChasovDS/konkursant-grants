@@ -1,4 +1,4 @@
-// UserData.jsx
+// src\components\WorkspacePages\ProfilePage\UserProfile.jsx
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -6,8 +6,7 @@ import {
   Box,
   CircularProgress,
 } from '@mui/material';
-import axios from 'axios';
-import Cookies from 'js-cookie';
+import { fetchUserData, updateUserProfile } from '../../../api/Profile_API';
 import UserForm from './ComponentsProfilePage/UserForm';
 
 const UserData = () => {
@@ -16,18 +15,12 @@ const UserData = () => {
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserData = useCallback(async () => {
-    const jwtToken = Cookies.get('auth_token');
+  const loadUserData = useCallback(async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/v1/users/me?details=true&abbreviated=false', {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-        },
-      });
-      setUserData(response.data);
-      setFormData(response.data);
+      const data = await fetchUserData();
+      setUserData(data);
+      setFormData(data);
     } catch (error) {
-      console.error('Ошибка при получении данных о пользователе:', error);
       if (error.response && error.response.status === 401) {
         alert("Ошибка авторизации. Пожалуйста, войдите снова.");
       }
@@ -37,22 +30,15 @@ const UserData = () => {
   }, []);
 
   useEffect(() => {
-    fetchUserData();
-  }, [fetchUserData]);
+    loadUserData();
+  }, [loadUserData]);
 
   const handleEditClick = () => setIsEditing(true);
 
   const handleSaveClick = async () => {
-    const jwtToken = Cookies.get('auth_token');
     try {
-      await axios.patch(`http://127.0.0.1:8000/api/v1/users/${formData.user_id}/profile`, formData, {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-        },
-      });
-      alert("Данные успешно обновлены!");
+      await updateUserProfile(formData.user_id, formData);
     } catch (error) {
-      console.error('Ошибка при обновлении данных:', error);
       alert("Ошибка при обновлении данных. Пожалуйста, попробуйте еще раз.");
     } finally {
       setIsEditing(false);
@@ -66,24 +52,20 @@ const UserData = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-  
-    // Разделяем имя поля по точке, чтобы получить доступ к вложенным объектам
     const keys = name.split('.');
     setFormData((prevData) => {
       let newData = { ...prevData };
       let currentLevel = newData;
-  
-      // Проходим по всем уровням вложенности, кроме последнего
+
       for (let i = 0; i < keys.length - 1; i++) {
         if (!currentLevel[keys[i]]) {
           currentLevel[keys[i]] = {};
         }
         currentLevel = currentLevel[keys[i]];
       }
-  
-      // Устанавливаем новое значение
+
       currentLevel[keys[keys.length - 1]] = value;
-  
+
       return newData;
     });
   };

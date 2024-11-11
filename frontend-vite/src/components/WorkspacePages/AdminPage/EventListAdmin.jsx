@@ -1,5 +1,6 @@
+// src/components/EventsList.jsx
+
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -8,7 +9,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Button,
   Paper,
   Snackbar,
   Alert,
@@ -20,13 +20,12 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
-import Cookies from "js-cookie";
 import TitleIcon from "@mui/icons-material/Title";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteEventModal from "./ComponentsAdminPage/DeleteEventModal";
-
+import { fetchEvents, deleteEvent } from "../../../api/Admin_API"; 
 const EventStatus = {
   ALL: "Любой",
   COMPLETED: "Проведено",
@@ -49,50 +48,28 @@ const EventsList = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      const jwtToken = Cookies.get("auth_token");
+    const loadEvents = async () => {
+      setLoading(true);
       try {
-        const response = await axios.get(
-          "http://127.0.0.1:8000/api/v1/events",
-          {
-            headers: { Authorization: `Bearer ${jwtToken}` },
-            params: {
-              page,
-              limit: rowsPerPage,
-              full_title: searchTitle,
-              event_status: filterStatus === EventStatus.ALL ? undefined : filterStatus,
-            },
-          }
-        );
-        setEvents(response.data.events);
-        const totalCountFromHeader = response.headers["X-Total-Count"];
-        setTotalCount(
-          totalCountFromHeader ? parseInt(totalCountFromHeader, 10) : 0
-        );
+        const { events, totalCount } = await fetchEvents(page, rowsPerPage, searchTitle, filterStatus);
+        setEvents(events);
+        setTotalCount(totalCount);
       } catch (error) {
-        console.error("Ошибка при загрузке мероприятий:", error);
         setError("Не удалось загрузить мероприятия. Пожалуйста, попробуйте позже.");
       } finally {
         setLoading(false);
       }
     };
-    fetchEvents();
+    loadEvents();
   }, [page, rowsPerPage, searchTitle, filterStatus]);
 
   const handleDeleteEvent = async () => {
-    const jwtToken = Cookies.get("auth_token");
     try {
-      await axios.delete(
-        `http://127.0.0.1:8000/api/v1/events/${eventToDelete}`,
-        {
-          headers: { Authorization: `Bearer ${jwtToken}` },
-        }
-      );
+      await deleteEvent(eventToDelete);
       setEvents(events.filter((event) => event.id_event !== eventToDelete));
       setModalOpen(false);
       setEventToDelete(null);
     } catch (error) {
-      console.error("Ошибка при удалении мероприятия:", error);
       setError("Не удалось удалить мероприятие. Пожалуйста, попробуйте позже.");
     }
   };

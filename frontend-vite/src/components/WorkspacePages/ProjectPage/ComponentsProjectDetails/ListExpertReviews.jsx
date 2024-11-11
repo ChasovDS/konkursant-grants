@@ -13,6 +13,7 @@ import {
   Paper,
   TableContainer
 } from '@mui/material';
+import { getProjectReviews } from '../../../../api/Project_API';
 
 // Переводы критериев
 const criteriaTranslations = {
@@ -44,7 +45,7 @@ const ExpertComment = ({ reviewerId, feedback }) => (
   </Box>
 );
 
-const ListExpertReviews = ({ projectId, jwtToken }) => {
+const ListExpertReviews = ({projectId}) => {
   const [reviews, setReviews] = useState([]); // Хранение отзывов
   const [loading, setLoading] = useState(true); // Статус загрузки
   const [error, setError] = useState(null); // Хранение ошибок
@@ -52,12 +53,8 @@ const ListExpertReviews = ({ projectId, jwtToken }) => {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const response = await axios.get(`http://127.0.0.1:8000/api/v1/reviews/project/${projectId}`, {
-          headers: {
-            Authorization: `Bearer ${jwtToken}`,
-          },
-        });
-        setReviews(response.data); // Устанавливаем данные в состояние
+        const data = await getProjectReviews(projectId);
+        setReviews(data); // Устанавливаем данные в состояние
       } catch (err) {
         console.error('Ошибка при получении отзывов:', err);
         setError('Не удалось загрузить отзывы.'); // Установка ошибки

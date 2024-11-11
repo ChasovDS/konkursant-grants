@@ -1,102 +1,125 @@
-import { useEffect, useState } from 'react';
-import { Container, Typography, Paper, Box, CircularProgress, Alert } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { handleIncomingMessage } from '../../utils/auth';
+import { useEffect, useState } from "react";
+import {
+  Container,
+  Typography,
+  Paper,
+  Box,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import Cookies from 'js-cookie'; // Библиотека для работы с куки
+import { handleIncomingMessage } from "../../utils/auth";
 
 const Login = () => {
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [isButtonInitialized, setIsButtonInitialized] = useState(false);
+  const VITE_FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-    useEffect(() => {
-        // Проверка наличия куки
-        const authToken = document.cookie.split('; ').find(row => row.startsWith('auth_token='));
-        const userData = document.cookie.split('; ').find(row => row.startsWith('userData='));
+  useEffect(() => {
+    const authToken = Cookies.get('auth_token');
+    const userData = Cookies.get('userData');
 
-        if (authToken && userData) {
-            // Если куки присутствуют, перенаправляем на /workspace
-            navigate('/workspace');
-            return;
+    if (authToken && userData) {
+      navigate("/workspace");
+      return;
+    }
+
+    const scriptId = "yandex-sdk-suggest";
+    const buttonId = "yandex-button";
+    let isButtonInitialized = false;
+
+    const loadYandexSdk = () => {
+      if (document.getElementById(scriptId)) return;
+
+      const script = document.createElement("script");
+      script.src =
+        "https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-with-polyfills-latest.js";
+      script.async = true;
+      script.id = scriptId;
+      document.head.appendChild(script);
+
+      script.onload = async () => {
+        const buttonContainer = document.getElementById(buttonId);
+        if (buttonContainer && !buttonContainer.firstChild && !isButtonInitialized) {
+          try {
+            setLoading(true);
+            const result = await window.YaAuthSuggest.init(
+              {
+                client_id: "fa6ff765db1e4b2a82e3c8f73079adda",
+                response_type: "token",
+                redirect_uri: `${VITE_FRONTEND_URL}:3000/redirect-page`,
+              },
+              VITE_FRONTEND_URL,
+              {
+                view: "button",
+                parentId: buttonId,
+                buttonView: "main",
+                buttonTheme: "light",
+                buttonSize: "m",
+                buttonBorderRadius: "22",
+              }
+            );
+
+            await result.handler();
+          } catch (error) {
+            console.error("Что-то пошло не так: ", error);
+            setError("Ошибка аутентификации, попробуйте еще раз.");
+          } finally {
+            setLoading(false);
+          }
+          isButtonInitialized = true;
         }
+      };
 
-        const scriptId = 'yandex-sdk-suggest';
-        const buttonId = 'yandex-button';
+      script.onerror = () => {
+        console.error("Ошибка загрузки Yandex SDK скрипта.");
+        setError("Не удалось загрузить SDK. Попробуйте позже.");
+      };
+    };
 
-        if (!document.getElementById(scriptId)) {
-            const script = document.createElement('script');
-            script.src = "https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-with-polyfills-latest.js";
-            script.async = true;
-            script.id = scriptId;
-            document.head.appendChild(script);
+    loadYandexSdk();
+    window.addEventListener("message", handleIncomingMessage);
 
-            script.onload = () => {
-                const buttonContainer = document.getElementById(buttonId);
-                if (buttonContainer && !buttonContainer.firstChild && !isButtonInitialized) {
-                    window.YaAuthSuggest.init({
-                        client_id: '4a4dd7433ce04ea0a2be5e5b825c9ee5',
-                        response_type: 'token',
-                        redirect_uri: 'http://localhost:3000/redirect-page'
-                    }, 
-                    'http://localhost:3000', {
-                        view: 'button',
-                        parentId: buttonId,
-                        buttonView: 'main',
-                        buttonTheme: 'light',
-                        buttonSize: 'm',
-                        buttonBorderRadius: "22",
-                    }).then(result => result.handler())
-                    .then(data => {
-                        console.log('Сообщение с токеном: ', data);
-                    }).catch(error => {
-                        console.error('Что-то пошло не так: ', error);
-                        setError('Ошибка аутентификации, попробуйте еще раз.');
-                    });
-                    setIsButtonInitialized(true);
-                }
-            };
+    return () => {
+      const existingScript = document.getElementById(scriptId);
+      if (existingScript) {
+        document.head.removeChild(existingScript);
+      }
 
-            script.onerror = () => {
-                console.error('Ошибка загрузки Yandex SDK скрипта.');
-                setError('Не удалось загрузить SDK. Попробуйте позже.');
-            };
-        }
+      const buttonContainer = document.getElementById(buttonId);
+      if (buttonContainer) {
+        buttonContainer.innerHTML = "";
+      }
 
-        window.addEventListener('message', handleIncomingMessage);
+      window.removeEventListener("message", handleIncomingMessage);
+    };
+  }, [navigate]);
 
-        return () => {
-            const existingScript = document.getElementById(scriptId);
-            if (existingScript) {
-                document.head.removeChild(existingScript);
-            }
-
-            const buttonContainer = document.getElementById(buttonId);
-            if (buttonContainer) {
-                buttonContainer.innerHTML = '';
-            }
-
-            window.removeEventListener('message', handleIncomingMessage);
-        };
-    }, [navigate, isButtonInitialized]);
-
-    return (
-        <Container component="main" maxWidth="xs">
-            <Paper elevation={6} sx={{ padding: 6, borderRadius: 3, marginTop: 8 }}>
-                <Box textAlign="center">
-                    <Typography variant="h4" component="h1" gutterBottom>
-                        Вход в приложение Конкурсант.Гранты
-                    </Typography>
-                    <Typography variant="body1" gutterBottom>
-                        Авторизуйтесь через Яндекс для продолжения
-                    </Typography>
-                    {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-                    <Box id="yandex-button" sx={{ marginTop: 4, display: 'flex', justifyContent: 'center' }}>
-                        {loading && <CircularProgress />}
-                    </Box>
-                </Box>
-            </Paper>
-        </Container>
-    );
+  return (
+    <Container component="main" maxWidth="xs">
+      <Paper elevation={6} sx={{ padding: 6, borderRadius: 3, marginTop: 8 }}>
+        <Typography variant="h4" component="h1" gutterBottom textAlign="center">
+          Вход в приложение Конкурсант.Гранты
+        </Typography>
+        <Typography variant="body1" gutterBottom textAlign="center">
+          Авторизуйтесь через Яндекс для продолжения
+        </Typography>
+        {error && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {error}
+          </Alert>
+        )}
+        <Box
+          id="yandex-button"
+          sx={{ marginTop: 4, display: "flex", justifyContent: "center" }}
+        >
+          {loading ? <CircularProgress /> : null}
+        </Box>
+      </Paper>
+    </Container>
+  );
 };
 
 export default Login;

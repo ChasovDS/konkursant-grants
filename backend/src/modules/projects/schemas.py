@@ -187,6 +187,7 @@ class Review(BaseModel):
 class ProjectFICPerson(BaseModel):
     create_date: Optional[datetime] = None  # Дата создания проекта
     update_date: Optional[datetime] = None  # Дата обновления проекта
+    assigned_event_id: Optional[str] = None  # Назначенное мероприятие проекта
     author_id: Optional[str] = None  # ID автора
     author_name: Optional[str] = None  # ФИО автора
     project_name: Optional[str] = None  # Название проекта
@@ -200,6 +201,7 @@ class ProjectFICPerson(BaseModel):
 # Модель для краткой информации о проекте
 class ProjectFICPersonSummary(BaseModel):
     project_id: Optional[str] = None  # ID проекта
+    assigned_event_id: Optional[str] = None  # Назначенное мероприятие проекта
     creation_date: Optional[datetime] = None  # Дата создания
     update_date: Optional[datetime] = None  # Дата обновления
     project_name: Optional[str] = None  # Название проекта

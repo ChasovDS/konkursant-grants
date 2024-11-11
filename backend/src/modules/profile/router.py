@@ -247,4 +247,36 @@ async def get_users_by_role(
     return user_list
 
 
+@router.get("/users/{role_type}", response_model=List[UserResponse])
+async def get_users_by_role_type(
+    role_type: str,
+    full_name: Optional[str] = Query(None),
+):
+    """
+    Получение списка пользователей в зависимости от типа роли и фильтрации по ФИО.
+    """
+    # Определяем роли в зависимости от типа
+    if role_type == "event_manager":
+        roles = [RoleEnum.ADMIN, RoleEnum.MODERATOR, RoleEnum.EVENT_MANAGER]
+    elif role_type == "expert":
+        roles = [RoleEnum.ADMIN, RoleEnum.MODERATOR, RoleEnum.EVENT_MANAGER, RoleEnum.EXPERT]
+    else:
+        raise HTTPException(status_code=400, detail="Неверный тип роли")
 
+    # Создаем базовый запрос для поиска пользователей по ролям
+    query = {"role_name": {"$in": roles}}
+
+    # Добавляем фильтры по ФИО, если они указаны
+    if full_name:
+        query["full_name"] = {"$regex": full_name, "$options": "i"}
+
+    # Поиск пользователей в базе данных
+    users = await profile_data_collection.find(query).to_list(length=100)  # Ограничим до 100 пользователей
+
+    if not users:
+        raise HTTPException(status_code=404, detail="Пользователи с данной ролью не найдены")
+
+    # Формируем список ответов
+    user_list = [UserResponse(user_id=str(user["_id"]), user_full_name=user.get("full_name", "Не указано")) for user in users]
+
+    return user_list

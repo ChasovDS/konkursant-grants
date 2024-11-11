@@ -2,9 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import axios from "axios";
-import Cookies from "js-cookie";
-
 import {
   Box,
   Typography,
@@ -26,12 +23,13 @@ import {
 import FeedbackIcon from "@mui/icons-material/Feedback";
 import PersonIcon from "@mui/icons-material/Person";
 import TagIcon from "@mui/icons-material/Tag";
-import EventNoteIcon from "@mui/icons-material/EventNote"; // Для типа мероприятия
-import DescriptionIcon from "@mui/icons-material/Description"; // Для формата мероприятия
-import CheckCircleIcon from "@mui/icons-material/CheckCircle"; // Для статуса мероприятия
-import PersonAddIcon from "@mui/icons-material/PersonAdd"; // Для участников
+import EventNoteIcon from "@mui/icons-material/EventNote";
+import DescriptionIcon from "@mui/icons-material/Description";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
 
-import ProjectAssignment from "./ComponentsEventPage/ProjectAssignment"; // Импортируем новый компонент
+import ProjectAssignment from "./ComponentsEventPage/ProjectAssignment";
+import {fetchEventData } from "../../../api/Event_API";
 
 const EventDetailsPage = () => {
   const { eventId } = useParams();
@@ -41,56 +39,22 @@ const EventDetailsPage = () => {
   const [rating, setRating] = useState(0);
 
   useEffect(() => {
-    const fetchEvent = async () => {
-      const jwtToken = Cookies.get("auth_token");
-      if (!jwtToken) {
-        console.error("Токен авторизации отсутствует");
-        setLoading(false);
-        return;
+    const loadEvent = async () => {
+      setLoading(true);
+      const eventData = await fetchEventData(eventId);
+      if (eventData) {
+        setEvent(eventData);
       }
-
-      try {
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/v1/events/${eventId}`,
-          {
-            headers: { Authorization: `Bearer ${jwtToken}` },
-          }
-        );
-        setEvent(response.data);
-      } catch (error) {
-        console.error(
-          "Ошибка при загрузке мероприятия:",
-          error.response?.data || error.message
-        );
-      } finally {
-        setLoading(false);
-      }
+      setLoading(false);
     };
 
-    fetchEvent();
+    loadEvent();
   }, [eventId]);
 
-  // Функция для обновления участников мероприятия
   const handleParticipantsUpdate = async () => {
-    const jwtToken = Cookies.get("auth_token");
-    if (!jwtToken) {
-      console.error("Токен авторизации отсутствует");
-      return;
-    }
-
-    try {
-      const response = await axios.get(
-        `http://127.0.0.1:8000/api/v1/events/${eventId}`,
-        {
-          headers: { Authorization: `Bearer ${jwtToken}` },
-        }
-      );
-      setEvent(response.data); // Обновляем состояние с новыми данными
-    } catch (error) {
-      console.error(
-        "Ошибка при обновлении участников мероприятия:",
-        error.response?.data || error.message
-      );
+    const updatedEvent = await fetchEventData(eventId);
+    if (updatedEvent) {
+      setEvent(updatedEvent);
     }
   };
 
@@ -114,13 +78,12 @@ const EventDetailsPage = () => {
     setRating(0);
   };
 
-  // Константы типов участников (на русском языке)
+  // Константы типов участников, статусов, типов и форматов мероприятия
   const ParticipantType = {
     ALL: "Все желающие",
     MEMBERS: "Только отрядники",
   };
 
-  // Константы статусов мероприятия
   const EventStatus = {
     ALL: "Любой",
     COMPLETED: "Проведено",
@@ -129,7 +92,6 @@ const EventDetailsPage = () => {
     CANCELED: "Отменено",
   };
 
-  // Константы типов мероприятий (на русском языке)
   const EventType = {
     ALL: "Любой",
     CONFERENCE: "Конференция",
@@ -137,7 +99,6 @@ const EventDetailsPage = () => {
     GRANT_EVENT: "Грантовое мероприятие",
   };
 
-  // Константы форматов мероприятия (на русском языке)
   const EventFormat = {
     ALL: "Любой",
     ONLINE: "Онлайн",
@@ -162,12 +123,12 @@ const EventDetailsPage = () => {
             <Card>
               <CardMedia
                 component="img"
-                height="240" // Высота карточки
-                image={event.event_logo || "/placeholder.jpg"} // URL изображения события с заменой на плейсхолдер
-                alt="Event Logo" // Альтернативный текст
+                height="240"
+                image={event.event_logo || "/placeholder.jpg"}
+                alt="Event Logo"
                 sx={{
-                  objectFit: "cover", // Заполнение изображения в карточке, скрывая части, выходящие за границы
-                  width: "100%", // Ширина изображения равна 100% ширины карточки
+                  objectFit: "cover",
+                  width: "100%",
                 }}
               />
 
@@ -223,7 +184,6 @@ const EventDetailsPage = () => {
               </Typography>
 
               <Grid container spacing={2}>
-                {/* Поле Формат */}
                 <Grid item xs={12} sm={3}>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <div style={{ display: "flex", alignItems: "center" }}>
@@ -243,7 +203,6 @@ const EventDetailsPage = () => {
                   </Stack>
                 </Grid>
 
-                {/* Поле Статус */}
                 <Grid item xs={12} sm={3}>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <div style={{ display: "flex", alignItems: "center" }}>
@@ -263,7 +222,6 @@ const EventDetailsPage = () => {
                   </Stack>
                 </Grid>
 
-                {/* Поле Участие */}
                 <Grid item xs={12} sm={3}>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <div style={{ display: "flex", alignItems: "center" }}>
@@ -284,7 +242,6 @@ const EventDetailsPage = () => {
                   </Stack>
                 </Grid>
 
-                {/* Поле Тип */}
                 <Grid item xs={12} sm={3}>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <div style={{ display: "flex", alignItems: "center" }}>
@@ -396,7 +353,7 @@ const EventDetailsPage = () => {
           <Typography variant="h6">Ваш проект на мероприятии:</Typography>
           <ProjectAssignment
             eventId={eventId}
-            onParticipantsUpdate={handleParticipantsUpdate} // Передаем обработчик обновления участников
+            onParticipantsUpdate={handleParticipantsUpdate}
           />
 
           <Box
@@ -434,7 +391,7 @@ const EventDetailsPage = () => {
           </Box>
         </Box>
 
-        <Box sx={{ mt: 4, p: 3, boxShadow: 1, borderRadius: 2 }}>
+        <Box sx={{ mt: 4, p: 3, boxShadow: 1, borderRadius: 2, display: "None"}}>
           <Typography variant="h6" sx={{ fontWeight: "bold" }}>
             Оставить отзыв о мероприятии
           </Typography>

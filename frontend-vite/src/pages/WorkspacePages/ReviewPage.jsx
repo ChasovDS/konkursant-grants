@@ -40,13 +40,14 @@ const EventsList = () => {
   const [searchTitle, setSearchTitle] = useState("");
   const [filterStatus, setFilterStatus] = useState(EventStatus.ALL);
   const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const fetchEvents = async () => {
       const jwtToken = Cookies.get("auth_token");
       try {
         const response = await axios.get(
-          "http://127.0.0.1:8000/api/v1/events/expert/list",
+          `${API_URL}/events/expert/list`,
           {
             headers: { Authorization: `Bearer ${jwtToken}` },
             params: {

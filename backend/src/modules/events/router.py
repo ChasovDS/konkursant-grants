@@ -422,6 +422,12 @@ async def registration_project_to_event(event_id: str, project_id: str, token: d
             {"$addToSet": {"event_participants": new_participant}}
         )
 
+        # Обновляем проект, добавляя assigned_event_id
+        await projects_data_collection.update_one(
+            {"_id": ObjectId(project_id)},
+            {"$set": {"assigned_event_id": event_id}}
+        )
+
         if update_result.modified_count == 0:
             raise HTTPException(status_code=400, detail="Не удалось добавить проект и участника")
 
@@ -430,6 +436,22 @@ async def registration_project_to_event(event_id: str, project_id: str, token: d
 @router.delete("/events/{event_id}/project/{project_id}", status_code=204)
 async def delete_project_from_event(event_id: str, project_id: str, token: dict = Depends(decode_jwt)):
     await check_permissions(token)
+
+    # Проверяем, существует ли проект
+    project = await projects_data_collection.find_one({"_id": ObjectId(project_id)})
+    if not project:
+        raise HTTPException(status_code=404, detail="Проект не найден")
+
+    # Проверяем, существует ли событие
+    event = await events_data_collection.find_one({"_id": ObjectId(event_id)})
+    if not event:
+        raise HTTPException(status_code=404, detail="Событие не найдено")
+
+    # Удаляем событие из проекта
+    await projects_data_collection.update_one(
+        {"_id": ObjectId(project_id)},
+        {"$set": {"assigned_event_id": None}}
+    )
 
     # Удаляем участника с указанным projects_id из мероприятия
     result = await events_data_collection.update_one(
