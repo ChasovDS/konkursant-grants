@@ -8,11 +8,16 @@ import {
   Alert,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import Cookies from 'js-cookie'; // Библиотека для работы с куки
-import { handleIncomingMessage } from "../../utils/auth";
+import Cookies from 'js-cookie';
+import { handleIncomingMessage } from '../../api/Auth_API';
 
 const Login = () => {
-  const VITE_FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
+  const VITE_FRONTEND_REDIRECT_URL = import.meta.env.VITE_FRONTEND_REDIRECT_URL;
+  const VITE_FRONTEND_ORIDGIN_URL = import.meta.env.VITE_FRONTEND_ORIDGIN_URL;
+  const VITE_CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
+  
+
+
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -47,11 +52,11 @@ const Login = () => {
             setLoading(true);
             const result = await window.YaAuthSuggest.init(
               {
-                client_id: "fa6ff765db1e4b2a82e3c8f73079adda",
+                client_id: VITE_CLIENT_ID,
                 response_type: "token",
-                redirect_uri: `${VITE_FRONTEND_URL}:3000/redirect-page`,
+                redirect_uri: VITE_FRONTEND_REDIRECT_URL,
               },
-              VITE_FRONTEND_URL,
+              VITE_FRONTEND_ORIDGIN_URL,
               {
                 view: "button",
                 parentId: buttonId,

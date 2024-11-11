@@ -38,7 +38,7 @@ const ProjectAssignment = ({ eventId, onParticipantsUpdate }) => {
 
   const fetchProjectsAndUserParticipation = async () => {
     try {
-      const projectsData = await fetchUserProjects();
+      const projectsData = await fetchUserProjects("eventSection", eventId);
       setAvailableProjects(projectsData);
       const eventData = await fetchEventData(eventId);
 

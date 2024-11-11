@@ -22,6 +22,8 @@ const UserSelect = ({ role, selectedUsers, setSelectedUsers }) => {
     setError(null);
     try {
       const usersData = await fetchUsers(role, search);
+      console.log(usersData)
+
       setUsers(usersData);
     } catch (error) {
       setError('Ошибка при получении пользователей');

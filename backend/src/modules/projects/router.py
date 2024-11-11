@@ -108,6 +108,8 @@ async def get_my_projects(
     name: Optional[str] = None,  # Фильтр по имени проекта
     author: Optional[str] = None,  # Фильтр по автору
     template: Optional[str] = None,  # Фильтр по шаблону
+    event_section: Optional[str] = None,  # Фильтр по шаблону
+    event_id: Optional[str] = None,  # Фильтр по мепроприятию
     token: dict = Depends(decode_jwt)
 ):
     """
@@ -130,12 +132,23 @@ async def get_my_projects(
         query["author_name"] = {"$regex": author, "$options": "i"}  # Регистронезависимый поиск
     if template:
         query["project_template"] = {"$regex": template, "$options": "i"}  # Регистронезависимый поиск
+    # Фильтрация по event_section и event_id
+    if event_id:
+        # Если event_id указан, добавляем условие для фильтрации
+        query["$or"] = [
+            {"assigned_event_id": event_id},  # Возвращаем проекты с совпадающим event_id
+            {"assigned_event_id": None},       # Или проекты без assigned_event_id
+            {"assigned_event_id": {"$exists": False}}  # Или проекты, где assigned_event_id отсутствует
+        ]
+
 
     # Получаем проекты из базы данных с пагинацией
     projects_cursor = projects_data_collection.find(query).skip(skip).limit(limit)
     projects = [await convert_project_to_summary(project) async for project in projects_cursor]
 
     return projects
+
+
 
 # Эндпоинт для получения всех проектов в системе
 @router.get("/projects-all", response_model=List[ProjectFICPersonSummary])

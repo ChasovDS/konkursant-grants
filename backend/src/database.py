@@ -5,7 +5,7 @@ from .config import settings
 
 # Создаем асинхронный клиент для подключения к MongoDB
 # Здесь указываем адрес и порт сервера MongoDB
-client = AsyncIOMotorClient("mongodb://localhost:27017")
+client = AsyncIOMotorClient(settings.mongodb_url)
 
 #----------------------------------------------------------------------------------------------------
 

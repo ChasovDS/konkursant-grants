@@ -341,6 +341,7 @@ async def get_events_as_expert(
     Получение списка мероприятий, где пользователь назначен экспертом с пагинацией и фильтрацией.
     """
     user_id = token.get("user_id")
+
     if not user_id:
         raise HTTPException(status_code=400, detail="Не удалось извлечь user_id из токена.")
 
@@ -352,6 +353,7 @@ async def get_events_as_expert(
         query["event_status"] = status.name
 
     total_events = await events_data_collection.count_documents(query)
+
     events = await events_data_collection.find(query).skip((page - 1) * limit).limit(limit).to_list(length=limit)
 
     # Возвращаем пустой список, если мероприятий не найдено

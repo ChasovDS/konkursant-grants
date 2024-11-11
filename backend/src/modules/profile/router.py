@@ -277,6 +277,6 @@ async def get_users_by_role_type(
         raise HTTPException(status_code=404, detail="Пользователи с данной ролью не найдены")
 
     # Формируем список ответов
-    user_list = [UserResponse(user_id=str(user["_id"]), user_full_name=user.get("full_name", "Не указано")) for user in users]
+    user_list = [UserResponse(user_id=str(user["user_id"]), user_full_name=user.get("full_name", "Не указано")) for user in users]
 
     return user_list

@@ -33,6 +33,7 @@ export const fetchEventData = async (eventId) => {
 export const submitEvent = async (eventDetails) => {
   const headers = getAuthHeaders();
   if (!headers) return null;
+  console.log(eventDetails)
 
   try {
     const response = await axios.post(`${API_URL}/events`, eventDetails, {
@@ -63,18 +64,22 @@ export const fetchUsers = async (role, search) => {
 
 
 // Получение проектов пользователя
-export const fetchUserProjects = async () => {
+export const fetchUserProjects = async (eventSection, eventId) => {
   const headers = getAuthHeaders();
   if (!headers) return null;
 
   try {
-    const response = await axios.get(`${API_URL}/projects/me`, { headers });
+    const response = await axios.get(`${API_URL}/projects/me`, {
+      headers,
+      params: { event_section: eventSection, event_id: eventId }
+    });
     return response.data;
   } catch (error) {
     console.error('Ошибка при получении проектов пользователя:', error);
     throw error;
   }
 };
+
 
 // Получение информации о пользователе
 export const fetchUserDetails = async () => {

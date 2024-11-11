@@ -1,12 +1,12 @@
 import { useEffect, useCallback } from 'react';
-import { exchangeTokenForUserInfo } from '../../utils/auth';
+import { exchangeTokenForUserInfo } from '../../api/Auth_API';
+
 
 const RedirectPage = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
 
   const processToken = useCallback(async (token) => {
     try {
-      const response = await exchangeTokenForUserInfo(token, apiUrl);
+      const response = await exchangeTokenForUserInfo(token);
       console.log('Ответ сервера:', response);
 
       if (window.opener) {
@@ -20,7 +20,7 @@ const RedirectPage = () => {
         window.close();
       }
     }
-  }, [apiUrl]);
+  });
 
   useEffect(() => {
     const script = document.createElement('script');

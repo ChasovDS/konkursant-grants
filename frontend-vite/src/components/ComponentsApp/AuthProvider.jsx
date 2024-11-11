@@ -73,7 +73,7 @@ const AuthProvider = ({ children }) => {
                 email: userResponse.data.external_service_accounts?.yandex || "",
                 role_name: userResponse.data.role_name || "",
                 user_id: userResponse.data.user_id || "",
-                image: userResponse.data.avatar || "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/2c2b2b3d-4d6e-4907-9311-420e881ae780/original=true,quality=90/36331830.jpeg",
+                image: userResponse.data.avatar || "../../../../public/7.png",
               };
               signIn(userData);
             }
