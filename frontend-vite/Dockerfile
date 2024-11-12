@@ -23,7 +23,7 @@ FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Открыть порт 80 для доступа
-EXPOSE 80
+EXPOSE 3000
 
 # Запустить Nginx
 CMD ["nginx", "-g", "daemon off;"]
