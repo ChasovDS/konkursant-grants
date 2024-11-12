@@ -30,13 +30,12 @@ const Home = () => {
           <span className="main-title-or">Гранты </span>
         </Typography>
         <div className="button-container">
-        <a className="button" href="/login">
-    Авторизация
-</a>
-<a className="button" href="/instructions">
-    Инструкция
-</a>
-
+          <a className="button" href="/sign-in">
+            Авторизация
+          </a>
+          <a className="button" href="/sign-up">
+            Регистрация
+          </a>
         </div>
       </Container>
       {/* Уведомление о куки */}

@@ -1,10 +1,13 @@
 # src/modules/auth/router.py
 from fastapi import APIRouter, HTTPException, Depends, Response, Cookie
 from fastapi.responses import JSONResponse
-from src.modules.auth.auth import get_user_info, create_or_load_user_yandex
+from src.modules.auth.auth import get_user_info, create_or_load_user_yandex, authenticate_user, create_user_profile
 from src.modules.auth.utils import create_jwt, hash_password, verify_password
 from src.modules.profile.schemas import JwtResponse
-from src.modules.auth.schemas import TokenData, UserResponse
+from src.modules.auth.schemas import TokenData, UserResponse, RegistrationData, LoginData
+
+
+
 
 # Создаем экземпляр маршрутизатора
 router = APIRouter()
@@ -70,4 +73,11 @@ async def authenticate_with_yandex(token_data: TokenData):
     )
     return response
 
+@router.post("/register")
+async def register_user(data: RegistrationData):
+    return await create_user_profile(data)
 
+
+@router.post("/login")
+async def login_user(data: LoginData):
+    return await authenticate_user(data)

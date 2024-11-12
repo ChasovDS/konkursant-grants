@@ -1,19 +1,11 @@
+// vite.config.js
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import fs from 'fs';
-import path from 'path';
-
-// Определение пути к сертификатам
-// const sslKey = fs.readFileSync(path.resolve(__dirname, 'localhost.key'));
-// const sslCert = fs.readFileSync(path.resolve(__dirname, 'localhost.crt'));
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react()], // Подключаем плагин React
   server: {
-    port: 3000,
-  },
-  build: {
-    outDir: 'dist', // Укажите выходную директорию
-    sourcemap: true, // Опционально: создание sourcemap для отладки
+    host: true, // Разрешает доступ к серверу по сети
+    port: 3000, // Устанавливаем порт, на котором будет работать сервер
   },
 });

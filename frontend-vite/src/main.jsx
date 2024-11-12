@@ -6,6 +6,16 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme/theme';
 
+// Импорт страниц аунтефикации и регистрации
+
+
+import Login from './pages/AuthPage/Login';
+import RedirectPage from './pages/AuthPage/RedirectPage';
+import Sign_up from './pages/AuthPage/Sign_up';
+import Sign_in from './pages/AuthPage/Sign_in';
+
+
+
 // Импорт компонентов страниц
 import App from './App';
 import BaseLayout from './layouts/BaseLayout'; 
@@ -34,9 +44,6 @@ import ProjectDetails from './components/WorkspacePages/ProjectPage/ComponentsPr
 
 
 
-import Login from './pages/AuthPage/Login';
-import RedirectPage from './pages/AuthPage/RedirectPage';
-
 
 // Настройка маршрутов
 const router = createBrowserRouter([
@@ -50,7 +57,8 @@ const router = createBrowserRouter([
       { path: 'redirect-page', element: <RedirectPage /> },
       { path: 'forbidden', element: <Forbidden /> },
       { path: '*', element: <NotFound /> },
-      { path: 'instructions', element: <Instructions /> },
+      { path: 'sign-up', element: <Sign_up /> },
+      { path: 'sign-in', element: <Sign_in /> },
     ],
   },
 

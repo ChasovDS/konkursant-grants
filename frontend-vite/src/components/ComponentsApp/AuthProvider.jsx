@@ -3,18 +3,12 @@ import React, { useEffect, useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
-import CryptoJS from "crypto-js"; // Импортируем библиотеку для шифрования
+import CryptoJS from "crypto-js";
 
-// Создаем контекст
 const AuthContext = React.createContext();
-
-// Константа для API URL
 const API_URL = import.meta.env.VITE_API_URL;
-
 const URL_AUTH = `${API_URL}/users/me?details=false&abbreviated=true`;
-
-// Ключ для шифрования (в реальном приложении храните его в переменных окружения!)
-const ENCRYPTION_KEY = "your-encryption-key";
+const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY;
 
 const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
@@ -22,7 +16,10 @@ const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   const encryptData = (data) => {
-    return CryptoJS.AES.encrypt(JSON.stringify(data), ENCRYPTION_KEY).toString();
+    return CryptoJS.AES.encrypt(
+      JSON.stringify(data),
+      ENCRYPTION_KEY
+    ).toString();
   };
 
   const decryptData = (ciphertext) => {
@@ -33,19 +30,19 @@ const AuthProvider = ({ children }) => {
   const signIn = useCallback((userData) => {
     const encryptedData = encryptData(userData);
     setSession({ user: userData });
-    Cookies.set('userData', encryptedData, {
+    Cookies.set("userData", encryptedData, {
       expires: 7,
       secure: true,
-      sameSite: 'Strict',
-      path: '/'
+      sameSite: "Strict",
+      path: "/",
     });
   }, []);
 
   const signOut = useCallback(() => {
     Cookies.remove("auth_token");
-    Cookies.remove('userData');
+    Cookies.remove("userData");
     setSession({ user: null });
-    navigate('/');
+    navigate("/");
   }, [navigate]);
 
   const authentication = useMemo(
@@ -59,7 +56,7 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const storedUserData = Cookies.get('userData');
+        const storedUserData = Cookies.get("userData");
         if (!storedUserData) {
           const jwtToken = Cookies.get("auth_token");
           if (jwtToken) {
@@ -68,28 +65,39 @@ const AuthProvider = ({ children }) => {
             });
 
             if (userResponse.data) {
+              const {
+                full_name,
+                external_service_accounts,
+                role_name,
+                user_id,
+                avatar,
+              } = userResponse.data;
               const userData = {
-                name: `${userResponse.data.first_name || ""} ${userResponse.data.last_name || ""}`,
-                email: userResponse.data.external_service_accounts?.yandex || "",
-                role_name: userResponse.data.role_name || "",
-                user_id: userResponse.data.user_id || "",
-                image: userResponse.data.avatar || "../../../../public/7.png",
+                name: full_name || "",
+                email: external_service_accounts?.yandex || "",
+                role_name: role_name || "",
+                user_id: user_id || "",
+                image: avatar || "https://sun9-65.userapi.com/impg/XOlcGkaH6lKLPZwtknYlJ1Y_ziFYzSiFxnJdVg/K6URQUELjyM.jpg?size=480x480&quality=95&sign=e7f9c1a9af554ed5b3c7daa73817c9fe&type=album",
               };
               signIn(userData);
             }
+          } else {
+            // Обработка случая, когда auth_token отсутствует
+            setError("Токен аутентификации отсутствует. Пожалуйста, войдите в систему.");
+            navigate("/sign-in"); // Перенаправление на страницу входа
           }
         } else {
           const decryptedData = decryptData(storedUserData);
           setSession({ user: decryptedData });
         }
       } catch (error) {
-        setError("Ошибка при получении данных пользователя.");
+        setError(`Ошибка при получении данных пользователя: ${error.message}`);
         console.error("Ошибка при получении данных пользователя:", error);
       }
     };
 
     fetchUserData();
-  }, [signIn]);
+  }, [signIn, navigate]);
 
   return (
     <AuthContext.Provider value={{ session, authentication, error }}>

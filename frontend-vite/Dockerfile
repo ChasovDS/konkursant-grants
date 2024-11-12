@@ -22,8 +22,8 @@ FROM nginx:alpine
 # Копировать собранные файлы
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Открыть порт 300 для доступа
-EXPOSE 3000
+# Открыть порт 80 для доступа
+EXPOSE 80
 
 # Запустить Nginx
 CMD ["nginx", "-g", "daemon off;"]

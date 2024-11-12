@@ -3,6 +3,15 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
 
+class RegistrationData(BaseModel):
+    full_name: str
+    email: EmailStr
+    password: str
+
+class LoginData(BaseModel):
+    email: EmailStr
+    password: str
+
 class YandexUserAccount(BaseModel):
     """Схема для учетной записи пользователя Яндекс."""
     ya_id: Optional[str] = None

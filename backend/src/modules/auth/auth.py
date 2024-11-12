@@ -1,16 +1,14 @@
 # src/modules/auth/auth.py
 import httpx
-from fastapi import HTTPException
+from fastapi import HTTPException, Response
+from fastapi.responses import JSONResponse
 from bson import ObjectId
 from datetime import datetime, timedelta
 
 from src.database import authorization_accounts_collection, profile_data_collection, user_sessions_collection
-
-from src.modules.auth.utils import create_jwt
-
-from src.modules.auth.schemas import SessionCreate, YandexUserAccount, AuthorizationAccounts
+from src.modules.auth.schemas import SessionCreate, YandexUserAccount, AuthorizationAccounts, RegistrationData, LoginData, EmailUserAccount
 from src.modules.profile.schemas import ProfileData, RoleEnum, ExternalServiceAccounts, SquadInfo
-
+from src.modules.auth.utils import hash_password, verify_password, create_jwt
 
 
 
@@ -115,3 +113,108 @@ async def create_session(user_id: ObjectId):
     )
     result = await user_sessions_collection.insert_one(session.dict())
     return str(result.inserted_id)
+
+async def create_user_profile(data: RegistrationData):
+    # Проверяем, существует ли пользователь с таким email
+    existing_user = await authorization_accounts_collection.find_one(
+        {"email_user_account.email_login": data.email}
+    )
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Пользователь с таким email уже существует")
+
+    # Хешируем пароль
+    hashed_password = hash_password(data.password)
+
+    # Создаём запись в AuthorizationAccounts с YandexUserAccount
+    yandex_user = YandexUserAccount(
+        email_ya=data.email,
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
+    )
+
+    # Создаем запись пользователя
+    email_user_account = EmailUserAccount(
+        email_login=data.email,
+        hash_password=hashed_password,
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
+    )
+
+    authorization_account = AuthorizationAccounts(
+        email_user_account=email_user_account,
+        yandex_user_account=yandex_user
+    )
+
+    # Вставляем нового пользователя в коллекцию authorization_accounts_collection
+    result = await authorization_accounts_collection.insert_one(authorization_account.dict())
+    if not result.inserted_id:
+        raise HTTPException(status_code=500, detail="Ошибка при создании пользователя")
+
+    # Создаём запись в ProfileData с ролью по умолчанию
+    external_accounts = ExternalServiceAccounts(
+        yandex=data.email,
+    )
+
+    squad_info = SquadInfo(
+        direction=None,
+        squad=None
+    )
+
+    data_user = ProfileData(
+        user_id=str(result.inserted_id),
+        username=None,  # Здесь можно задать имя пользователя, если оно доступно
+        full_name=data.full_name,
+        last_name=None,
+        first_name=None,
+        middle_name=None,
+        phone=None,
+        city=None,
+        gender=None,
+        birthday=None,
+        profile_photo_upl=None,
+        external_service_accounts=external_accounts,
+        role_name=RoleEnum.USER,
+        squad_info=squad_info
+    )
+
+    profile_result = await profile_data_collection.insert_one(data_user.dict())
+    if not profile_result.inserted_id:
+        raise HTTPException(status_code=500, detail="Ошибка при создании профиля пользователя")
+
+    return {"message": "Регистрация прошла успешно"}
+
+
+async def authenticate_user(data: LoginData):
+    # Ищем пользователя по email
+    user = await authorization_accounts_collection.find_one(
+        {"email_user_account.email_login": data.email}
+    )
+    if not user:
+        raise HTTPException(status_code=400, detail="Неверный email или пароль")
+
+    # Проверяем пароль
+    if not verify_password(data.password, user["email_user_account"]["hash_password"]):
+        raise HTTPException(status_code=400, detail="Неверный email или пароль")
+
+    # Извлекаем профиль пользователя
+    profile = await profile_data_collection.find_one({"user_id": str(user["_id"])})
+    if not profile:
+        raise HTTPException(status_code=500, detail="Профиль пользователя не найден")
+
+    role = profile.get("role_name", RoleEnum.USER)
+
+    # Создаем JWT токен
+    user_id = str(user["_id"])
+    jwt_token = create_jwt(user_id, data.email, role)
+
+    # Устанавливаем куки с JWT токеном
+    response = JSONResponse(content={"message": "Аутентификация прошла успешно."})
+    response.set_cookie(
+        key="auth_token",
+        value=jwt_token,
+        httponly=False,
+        secure=True,
+        samesite='Strict',
+        expires=7 * 24 * 60 * 60  # 7 дней
+    )
+    return response
