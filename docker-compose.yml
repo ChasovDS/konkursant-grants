@@ -15,7 +15,7 @@ services:
       context: ./frontend-vite
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"  # Порт для Vite
+      - "80:80"  # Порт для Vite
     networks:
       - app-network
 
