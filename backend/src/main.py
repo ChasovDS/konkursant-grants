@@ -37,6 +37,7 @@ app.add_middleware(
         "http://51.250.35.102",
         "http://localhost:5173/",
         "http://localhost",
+        "http://51.250.35.102/",
         "http://130.193.46.135",
         "http://130.193.46.135:3000",
         "http://localhost:3000/",
