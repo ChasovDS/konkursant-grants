@@ -14,8 +14,6 @@ services:
     build:
       context: ./frontend-vite
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"  # Прокси API на хосте
     networks:
       - app-network
 
@@ -39,7 +37,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin  # Укажите имя пользователя
       MONGO_INITDB_ROOT_PASSWORD: password  # Укажите пароль
     ports:
-      - "27018:27017"  # Проброс порта для доступа к MongoDB
+      - "27017:27017"  # Проброс порта для доступа к MongoDB
     volumes:
       - mongo_data:/data/db  # Сохраняем данные в постоянном хранилище
     networks:
