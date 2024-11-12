@@ -16,7 +16,7 @@ const RedirectPage = () => {
     } catch (error) {
       console.error(error.message);
       if (window.opener) {
-        window.opener.location.href = '/auth';
+        window.opener.location.href = '/auth_bek';
         window.close();
       }
     }
@@ -38,7 +38,7 @@ const RedirectPage = () => {
       } else {
         console.error('Токен не найден в URL.');
         if (window.opener) {
-          window.opener.location.href = '/auth';
+          window.opener.location.href = '/auth_url';
           window.close();
         }
       }
@@ -47,7 +47,7 @@ const RedirectPage = () => {
     script.onerror = () => {
       console.error("Ошибка загрузки скрипта для обработки токена");
       if (window.opener) {
-        window.opener.location.href = '/auth';
+        window.opener.location.href = '/auth_token';
         window.close();
       }
     };
