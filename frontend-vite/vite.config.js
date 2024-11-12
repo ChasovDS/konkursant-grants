@@ -9,14 +9,7 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  server: {
-    // https: {
-    //   key: sslKey,
-    //   cert: sslCert,
-    // },
-    host: true,
-    port: 3000,
-  },
+
   build: {
     outDir: 'dist', // Укажите выходную директорию
     sourcemap: true, // Опционально: создание sourcemap для отладки
