@@ -39,7 +39,6 @@ app.add_middleware(
     expose_headers=["auth_token"],
 )
 
-
 @app.get("/", tags=["Стартовая страница"])
 async def root():
     return {"message": "Добро пожаловать в API Конкурсант"}

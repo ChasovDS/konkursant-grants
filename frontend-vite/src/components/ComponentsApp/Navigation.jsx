@@ -148,10 +148,6 @@ export const NAVIGATION = {
   ],
   user: [
     {
-      kind: "header",
-      title: "Main items",
-    },
-    {
       title: "Главная",
       segment: "workspace",
       icon: <DashboardIcon />,
