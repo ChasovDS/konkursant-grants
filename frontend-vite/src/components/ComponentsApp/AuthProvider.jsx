@@ -60,10 +60,7 @@ const AuthProvider = ({ children }) => {
         if (!storedUserData) {
           const jwtToken = Cookies.get("auth_token");
           if (jwtToken) {
-            const userResponse = await axios.get(URL_AUTH, {
-              headers: { Authorization: `Bearer ${jwtToken}` },
-            });
-
+            const userResponse = await axios.get(URL_AUTH, { withCredentials: true });
             if (userResponse.data) {
               const {
                 full_name,
