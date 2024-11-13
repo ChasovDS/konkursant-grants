@@ -207,14 +207,9 @@ async def authenticate_user(data: LoginData):
     user_id = str(user["_id"])
     jwt_token = create_jwt(user_id, data.email, role)
 
-    # Устанавливаем куки с JWT токеном
+    # Возвращаем токен в заголовке ответа
     response = JSONResponse(content={"message": "Аутентификация прошла успешно."})
-    response.set_cookie(
-        key="auth_token",
-        value=jwt_token,
-        httponly=False,
-        secure=True,
-        samesite='Strict',
-        expires=7 * 24 * 60 * 60  # 7 дней
-    )
+    response.headers["auth_token"] = jwt_token  # добавляем токен в заголовок
+    print("Токен отправлен")
     return response
+

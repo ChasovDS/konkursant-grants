@@ -1,5 +1,3 @@
-// src/pages/AuthPage/Sign_in.jsx
-
 import React, { useState } from "react";
 import {
   Container,
@@ -22,7 +20,7 @@ const Sign_in = () => {
     password: "",
   });
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false); // Для успешного уведомления
+  const [success, setSuccess] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const navigate = useNavigate();
 
@@ -37,7 +35,6 @@ const Sign_in = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Валидация email на несколько доменов
     const emailPattern = /.+@(ya\.ru|yandex\.com|yandex\.ru|yandex\.by|yandex\.kz)$/;
     if (!emailPattern.test(formData.email)) {
       setError("Пожалуйста, используйте почту с доменами: @ya.ru, @yandex.com, @yandex.ru, @yandex.by, @yandex.kz");
@@ -48,17 +45,21 @@ const Sign_in = () => {
 
     try {
       const response = await axios.post(`${API_URL}/login`, formData, { withCredentials: true });
-      console.log("Ответ от сервера:", response.data);
-      // Здесь можно сохранить токен, если он возвращается
-      // Например: localStorage.setItem('auth_token', response.data.token);
-      // Успешный вход
-      setSuccess(true);
-      setError(null);
-      setOpenSnackbar(true);
-      // После успешного входа перенаправляем на '/workspace'
-      setTimeout(() => {
-        navigate("/workspace");
-      }, 2000); // Задержка перед перенаправлением
+      const authToken = response.headers["auth_token"];  // Получаем токен из заголовка ответа
+
+      if (authToken) {
+        document.cookie = `auth_token=${authToken}; path=/; secure; samesite=strict`;  // Устанавливаем куки вручную
+        setSuccess(true);
+        setError(null);
+        setOpenSnackbar(true);
+        setTimeout(() => {
+          navigate("/workspace");
+        }, 2000);
+      } else {
+        setError("Не удалось получить токен авторизации.");
+        setSuccess(false);
+        setOpenSnackbar(true);
+      }
     } catch (error) {
       console.error("Ошибка при входе:", error);
       setError("Ошибка при входе. Проверьте свои учетные данные.");
