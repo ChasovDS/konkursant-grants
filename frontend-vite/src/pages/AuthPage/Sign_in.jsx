@@ -13,7 +13,6 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Cookies from "js-cookie";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -36,65 +35,29 @@ const Sign_in = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Предотвращаем перезагрузку страницы
+    e.preventDefault();
 
     // Валидация email на несколько доменов
-    const emailPattern =
-      /.+@(ya\.ru|yandex\.com|yandex\.ru|yandex\.by|yandex\.kz)$/;
+    const emailPattern = /.+@(ya\.ru|yandex\.com|yandex\.ru|yandex\.by|yandex\.kz)$/;
     if (!emailPattern.test(formData.email)) {
-      setError(
-        "Пожалуйста, используйте почту с доменами: @ya.ru, @yandex.com, @yandex.ru, @yandex.by, @yandex.kz"
-      );
+      setError("Пожалуйста, используйте почту с доменами: @ya.ru, @yandex.com, @yandex.ru, @yandex.by, @yandex.kz");
       setSuccess(false);
       setOpenSnackbar(true);
-      return; // Завершаем выполнение функции при ошибке
+      return;
     }
 
-
     try {
-      // Отправка POST-запроса на сервер для входа
-      const response = await axios.post(`${API_URL}/login`, formData, {
-        withCredentials: true, // Позволяет отправлять куки с запросом
-      });
-
-      //////////////////////////////////////
-        /// DEV ONLY
-    //    const authToken = response.headers["auth_token"]; // Получаем токен из заголовка ответа
-//
-  //      if (authToken) {
-         // Cookies.set("auth_token", authToken, {
-           // expires: 7, // Кука будет действительна 7 дней
-           // secure: true, // Кука будет передаваться только по HTTPS
-          //  sameSite: "None", // Ограничивает отправку куки с запросами из других сайтов
-         //   path: "/", // Кука доступна на всем сайте
-       //   });
-      //  }
-        /// DEV ONLY
-      //////////////////////////////////////
-
+      const response = await axios.post(`${API_URL}/login`, formData, { withCredentials: true });
       console.log("Ответ от сервера:", response.data);
-
-      const token = Cookies.get("auth_token"); // Получаем токен из куки
-
-      if (token) {
-        // Успешный вход
-        setSuccess(true);
-        setError(null);
-        setOpenSnackbar(true);
-
-        // После успешного входа перенаправляем на '/workspace'
-        setTimeout(() => {
-          navigate("/workspace");
-        }, 2000); // Задержка перед перенаправлением
-
-        return true; // Токен найден
-      } else {
-        // Если токен не найден, выводим сообщение
-        setError("Токен не найден. Cистемная ошибка.");
-        setSuccess(false);
-        setOpenSnackbar(true);
-        return false; // Токен не найден
-      }
+      // localStorage.setItem('auth_token', response.data.token);
+      // Успешный вход
+      setSuccess(true);
+      setError(null);
+      setOpenSnackbar(true);
+      // После успешного входа перенаправляем на '/workspace'
+      setTimeout(() => {
+        navigate("/workspace");
+      }, 2000); // Задержка перед перенаправлением
     } catch (error) {
       console.error("Ошибка при входе:", error);
       setError("Ошибка при входе. Проверьте свои учетные данные.");
@@ -109,14 +72,7 @@ const Sign_in = () => {
 
   return (
     <Container maxWidth="xs">
-      <Box
-        sx={{
-          mt: 8,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
+      <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <Typography component="h1" variant="h5">
           Вход
         </Typography>
@@ -156,26 +112,18 @@ const Sign_in = () => {
           >
             Войти
           </Button>
-          <Box sx={{ display: "flex", justifyContent: "center" }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <Typography variant="body2">
-              Нет аккаунта?{" "}
+              Нет аккаунта?{' '}
               <Link href="/sign-up" variant="body2">
                 Зарегистрироваться
               </Link>
             </Typography>
           </Box>
         </Box>
-        <Snackbar
-          open={openSnackbar}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-        >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity={error ? "error" : "success"}
-          >
-            {error ||
-              "Вход выполнен успешно! Перенаправляем на страницу рабочего пространства..."}
+        <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+          <Alert onClose={handleCloseSnackbar} severity={error ? "error" : "success"}>
+            {error || "Вход выполнен успешно! Перенаправляем на страницу рабочего пространства..."}
           </Alert>
         </Snackbar>
       </Box>

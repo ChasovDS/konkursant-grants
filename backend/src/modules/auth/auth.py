@@ -211,7 +211,7 @@ async def authenticate_user(data: LoginData):
     response = JSONResponse(content={"message": "Аутентификация прошла успешно."})
 
     # Возвращаем токен в заголовке ответа ТОЛЬКО ДЛЯ РАЗРАБОТКИ
-    response.headers["auth_token"] = jwt_token  # добавляем токен в заголовок
+    # response.headers["auth_token"] = jwt_token  # добавляем токен в заголовок
     # Установка куки
     response.set_cookie(
         key="auth_token",
