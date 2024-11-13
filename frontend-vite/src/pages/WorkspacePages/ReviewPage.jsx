@@ -19,7 +19,6 @@ import {
   Box,
   IconButton,
 } from "@mui/material";
-import Cookies from "js-cookie";
 import TitleIcon from "@mui/icons-material/Title";
 
 const EventStatus = {
@@ -44,12 +43,11 @@ const EventsList = () => {
 
   useEffect(() => {
     const fetchEvents = async () => {
-      const jwtToken = Cookies.get("auth_token");
       try {
         const response = await axios.get(
           `${API_URL}/events/expert/list`,
           {
-            headers: { Authorization: `Bearer ${jwtToken}` },
+            withCredentials: true,
             params: {
               page,
               limit: rowsPerPage,

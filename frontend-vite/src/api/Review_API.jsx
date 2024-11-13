@@ -1,15 +1,6 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
 
 const API_URL = import.meta.env.VITE_API_URL;
-
-// Функция для получения заголовков авторизации
-const getAuthHeaders = () => {
-  const jwtToken = Cookies.get('auth_token');
-  return {
-    Authorization: `Bearer ${jwtToken}`,
-  };
-};
 
 // Функция для получения проектов мероприятия
 export const fetchProjects = async (eventId, page, rowsPerPage, authorSearchTerm, titleSearchTerm, ratingFilter) => {
@@ -17,7 +8,7 @@ export const fetchProjects = async (eventId, page, rowsPerPage, authorSearchTerm
     const response = await axios.get(
       `${API_URL}/events/${eventId}/projects`,
       {
-        headers: getAuthHeaders(),
+        withCredentials: true,
         params: {
           page,
           limit: rowsPerPage,
@@ -43,7 +34,7 @@ export const fetchCurrentUser = async () => {
     const response = await axios.get(
       `${API_URL}/users/me?details=false&abbreviated=true`,
       {
-        headers: getAuthHeaders(),
+        withCredentials: true,
       }
     );
     return response.data.user_id;

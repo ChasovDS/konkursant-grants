@@ -1,17 +1,9 @@
+
 // src/api/Admin_API.jsx
 import axios from "axios";
-import Cookies from "js-cookie";
 
 // Константы для URL-адресов API
 const API_URL = import.meta.env.VITE_API_URL;
-
-// Получение JWT токена
-const getAuthToken = () => Cookies.get("auth_token");
-
-// Создание заголовков
-const getHeaders = () => ({
-  Authorization: `Bearer ${getAuthToken()}`,
-});
 
 // Обработка ошибок
 const handleError = (error, message) => {
@@ -19,14 +11,12 @@ const handleError = (error, message) => {
   throw error;
 };
 
-
-
 // Универсальная функция для выполнения GET запросов
 const getRequest = async (url, params = {}) => {
   try {
     const response = await axios.get(`${API_URL}${url}`, {
-      headers: getHeaders(),
       params,
+      withCredentials: true, // Добавляем флаг withCredentials
     });
     return response;
   } catch (error) {
@@ -38,7 +28,7 @@ const getRequest = async (url, params = {}) => {
 const deleteRequest = async (url) => {
   try {
     await axios.delete(`${API_URL}${url}`, {
-      headers: getHeaders(),
+      withCredentials: true, // Добавляем флаг withCredentials
     });
   } catch (error) {
     handleError(error, "Ошибка при выполнении DELETE запроса:");
@@ -50,20 +40,15 @@ const patchRequest = async (url, data) => {
   try {
     const response = await axios.patch(`${API_URL}${url}`, data, {
       headers: {
-        ...getHeaders(),
         'Content-Type': 'application/json',
       },
+      withCredentials: true, // Добавляем флаг withCredentials
     });
     return response.data;
   } catch (error) {
     handleError(error, "Ошибка при выполнении PATCH запроса:");
   }
 };
-
-
-
-
-
 
 // Функция для получения списка пользователей
 export const fetchUsers = async (page, limit, fullNameFilter, emailFilter, roleFilter) => {

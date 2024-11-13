@@ -1,27 +1,16 @@
+
 // src/api/Event_API.jsx
 
 import axios from "axios";
-import Cookies from "js-cookie";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// Функция для получения заголовков с авторизацией
-const getAuthHeaders = () => {
-  const jwtToken = Cookies.get("auth_token");
-  if (!jwtToken) {
-    console.error("Токен авторизации отсутствует");
-    return null;
-  }
-  return { Authorization: `Bearer ${jwtToken}` };
-};
-
 // Универсальная функция для получения данных о мероприятии
 export const fetchEventData = async (eventId) => {
-  const headers = getAuthHeaders();
-  if (!headers) return null;
-
   try {
-    const response = await axios.get(`${API_URL}/events/${eventId}`, { headers });
+    const response = await axios.get(`${API_URL}/events/${eventId}`, {
+      withCredentials: true, // Добавляем флаг withCredentials
+    });
     return response.data;
   } catch (error) {
     console.error("Ошибка при загрузке данных мероприятия:", error.response?.data || error.message);
@@ -31,16 +20,12 @@ export const fetchEventData = async (eventId) => {
 
 // Функция для создания мероприятия
 export const submitEvent = async (eventDetails) => {
-  const headers = getAuthHeaders();
-  if (!headers) return null;
-  console.log(eventDetails)
-
   try {
     const response = await axios.post(`${API_URL}/events`, eventDetails, {
       headers: {
-        ...headers,
         'Content-Type': 'application/json',
       },
+      withCredentials: true, // Добавляем флаг withCredentials
     });
     return response.data;
   } catch (error) {
@@ -54,6 +39,7 @@ export const fetchUsers = async (role, search) => {
   try {
     const response = await axios.get(`${API_URL}/users/${role}`, {
       params: { full_name: search },
+      withCredentials: true, // Добавляем флаг withCredentials
     });
     return response.data;
   } catch (error) {
@@ -62,16 +48,12 @@ export const fetchUsers = async (role, search) => {
   }
 };
 
-
 // Получение проектов пользователя
 export const fetchUserProjects = async (eventSection, eventId) => {
-  const headers = getAuthHeaders();
-  if (!headers) return null;
-
   try {
     const response = await axios.get(`${API_URL}/projects/me`, {
-      headers,
-      params: { event_section: eventSection, event_id: eventId }
+      params: { event_section: eventSection, event_id: eventId },
+      withCredentials: true, // Добавляем флаг withCredentials
     });
     return response.data;
   } catch (error) {
@@ -80,14 +62,12 @@ export const fetchUserProjects = async (eventSection, eventId) => {
   }
 };
 
-
 // Получение информации о пользователе
 export const fetchUserDetails = async () => {
-  const headers = getAuthHeaders();
-  if (!headers) return null;
-
   try {
-    const response = await axios.get(`${API_URL}/users/me?details=false&abbreviated=true`, { headers });
+    const response = await axios.get(`${API_URL}/users/me?details=false&abbreviated=true`, {
+      withCredentials: true, // Добавляем флаг withCredentials
+    });
     return response.data;
   } catch (error) {
     console.error('Ошибка при получении информации о пользователе:', error);
@@ -95,13 +75,12 @@ export const fetchUserDetails = async () => {
   }
 };
 
-
 // Функция для получения списка мероприятий
 export const fetchEvents = async (page, limit, filters) => {
   try {
     const response = await axios.get(`${API_URL}/events`, {
-      headers: getAuthHeaders(),
       params: { page, limit, ...filters },
+      withCredentials: true, // Добавляем флаг withCredentials
     });
     return {
       events: response.data.events,
@@ -113,14 +92,12 @@ export const fetchEvents = async (page, limit, filters) => {
   }
 };
 
-
 // Обновление проекта мероприятия
 export const updateEventProject = async (eventId, projectId) => {
-  const headers = getAuthHeaders();
-  if (!headers) return null;
-
   try {
-    await axios.patch(`${API_URL}/events/${eventId}/project/${projectId}`, {}, { headers });
+    await axios.patch(`${API_URL}/events/${eventId}/project/${projectId}`, {}, {
+      withCredentials: true, // Добавляем флаг withCredentials
+    });
   } catch (error) {
     console.error('Ошибка при обновлении проекта мероприятия:', error);
     throw error;
@@ -129,11 +106,10 @@ export const updateEventProject = async (eventId, projectId) => {
 
 // Удаление проекта мероприятия
 export const deleteEventProject = async (eventId, projectId) => {
-  const headers = getAuthHeaders();
-  if (!headers) return null;
-
   try {
-    await axios.delete(`${API_URL}/events/${eventId}/project/${projectId}`, { headers });
+    await axios.delete(`${API_URL}/events/${eventId}/project/${projectId}`, {
+      withCredentials: true, // Добавляем флаг withCredentials
+    });
   } catch (error) {
     console.error('Ошибка при удалении проекта мероприятия:', error);
     throw error;

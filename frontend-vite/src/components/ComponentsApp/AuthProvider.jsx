@@ -1,4 +1,3 @@
-// src/components/ComponentsApp/AuthProvider.jsx
 import React, { useEffect, useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -39,7 +38,6 @@ const AuthProvider = ({ children }) => {
   }, []);
 
   const signOut = useCallback(() => {
-    Cookies.remove("auth_token");
     Cookies.remove("userData");
     setSession({ user: null });
     navigate("/");
@@ -58,34 +56,36 @@ const AuthProvider = ({ children }) => {
       try {
         const storedUserData = Cookies.get("userData");
         if (!storedUserData) {
-          const jwtToken = Cookies.get("auth_token");
-          if (jwtToken) {
-            const userResponse = await axios.get(URL_AUTH, { withCredentials: true });
-            if (userResponse.data) {
-              const {
-                full_name,
-                external_service_accounts,
-                role_name,
-                user_id,
-                avatar,
-              } = userResponse.data;
-              const userData = {
-                name: full_name || "",
-                email: external_service_accounts?.yandex || "",
-                role_name: role_name || "",
-                user_id: user_id || "",
-                image: avatar || "https://sun9-65.userapi.com/impg/XOlcGkaH6lKLPZwtknYlJ1Y_ziFYzSiFxnJdVg/K6URQUELjyM.jpg?size=480x480&quality=95&sign=e7f9c1a9af554ed5b3c7daa73817c9fe&type=album",
-              };
-              signIn(userData);
-            }
-          } else {
-            // Обработка случая, когда auth_token отсутствует
-            setError("Токен аутентификации отсутствует. Пожалуйста, войдите в систему.");
-            navigate("/sign-in"); // Перенаправление на страницу входа
-          }
-        } else {
-          const decryptedData = decryptData(storedUserData);
-          setSession({ user: decryptedData });
+          // Если userData отсутствует, перенаправляем на страницу входа
+          setError("Данные пользователя отсутствуют. Пожалуйста, войдите в систему.");
+          navigate("/sign-in");
+          return;
+        }
+
+        const decryptedData = decryptData(storedUserData);
+        setSession({ user: decryptedData });
+
+        // Здесь вы можете отправить запрос на сервер, если вам нужно обновить данные пользователя
+        const userResponse = await axios.get(URL_AUTH, {
+          withCredentials: true, // Убедитесь, что куки отправляются
+        });
+
+        if (userResponse.data) {
+          const {
+            full_name,
+            external_service_accounts,
+            role_name,
+            user_id,
+            avatar,
+          } = userResponse.data;
+          const userData = {
+            name: full_name || "",
+            email: external_service_accounts?.yandex || "",
+            role_name: role_name || "",
+            user_id: user_id || "",
+            image: avatar || "https://sun9-65.userapi.com/impg/XOlcGkaH6lKLPZwtknYlJ1Y_ziFYzSiFxnJdVg/K6URQUELjyM.jpg?size=480x480&quality=95&sign=e7f9c1a9af554ed5b3c7daa73817c9fe&type=album",
+          };
+          setSession({ user: userData });
         }
       } catch (error) {
         setError(`Ошибка при получении данных пользователя: ${error.message}`);
@@ -94,7 +94,7 @@ const AuthProvider = ({ children }) => {
     };
 
     fetchUserData();
-  }, [signIn, navigate]);
+  }, [navigate]);
 
   return (
     <AuthContext.Provider value={{ session, authentication, error }}>

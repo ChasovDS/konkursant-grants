@@ -8,10 +8,7 @@ import ProjectsList from '../../components/WorkspacePages/ProjectPage/ProjectsLi
 import ProjectFilter from '../../components/WorkspacePages/ProjectPage/ComponentsProjectPage/ProjectFilter';
 import CreateProjectModal from '../../components/WorkspacePages/ProjectPage/ComponentsProjectPage/CreateProjectModal'; // Импортируем модальное окно
 
-
-
 import axios from 'axios';
-import Cookies from 'js-cookie';
 
 const ProjectsPage = () => {
   const [projects, setProjects] = useState([]);
@@ -25,12 +22,9 @@ const ProjectsPage = () => {
   const API_URL = import.meta.env.VITE_API_URL;
 
   const fetchProjects = async (page, filters = {}) => {
-    const jwtToken = Cookies.get('auth_token');
     try {
       const response = await axios.get(`${API_URL}/projects/me?skip=${(page - 1) * limit}&limit=${limit}`, {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`,
-        },
+        withCredentials: true,
         params: { ...filters },
       });
       setProjects(response.data);
@@ -41,6 +35,7 @@ const ProjectsPage = () => {
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
     if (tabIndex === 0) {

@@ -32,19 +32,8 @@ def create_jwt(user_id: str, email: str, role: str) -> str:
     return token
 
 async def decode_jwt(request: Request) -> Dict:
-    # Попробуем получить токен из заголовка Authorization
-    auth_header = request.headers.get("Authorization")
-    token = None
 
-    if auth_header:
-        # Извлекаем токен из заголовка
-        scheme, _, token = auth_header.partition(" ")
-        if scheme.lower() != "bearer":
-            logger.warning("Неверный формат заголовка Authorization")
-            raise HTTPException(status_code=401, detail="Неверный формат заголовка Authorization")
-    else:
-        # Если заголовка нет, пробуем получить токен из куки
-        token = request.cookies.get("auth_token")
+    token = request.cookies.get("auth_token")
 
     if not token:
         logger.warning("Токен не найден")
