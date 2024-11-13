@@ -30,19 +30,15 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "http://localhost:3000/",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3000/",
-        "http://51.250.35.102:3000",
-        "http://51.250.35.102:3000/",
         "http://51.250.35.102",
-        "http://51.250.35.102/",
+        "http://51.250.35.102:3000"
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["auth_token"],
 )
+
 
 @app.get("/", tags=["Стартовая страница"])
 async def root():
