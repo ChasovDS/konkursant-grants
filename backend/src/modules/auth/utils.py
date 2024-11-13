@@ -18,6 +18,25 @@ logger = logging.getLogger(__name__)
 # Настройка для хеширования паролей
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
+def decode_refresh_token(refresh_token: str):
+    """Декодирует refresh токен и возвращает полезную нагрузку."""
+    try:
+        payload = jwt.decode(refresh_token, settings.jwt_secret_key, algorithms=settings.jwt_algorithm)
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Refresh token expired")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+
+def create_refresh_token(user_id: str):
+    """Создает refresh токен."""
+    return jwt.encode({
+        "sub": user_id,
+        "exp": datetime.utcnow() + timedelta(days=settings.refresh_token_expire_days)
+    }, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+
 def create_jwt(user_id: str, email: str, role: str) -> str:
     expiration = datetime.utcnow() + timedelta(days=1)
     payload = {

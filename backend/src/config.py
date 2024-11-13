@@ -10,7 +10,8 @@ class Settings(BaseSettings):
     encryption_key: str
     mongodb_url: str
     mongodb_url_dev: str
-
+    access_token_expire_minutes: int
+    refresh_token_expire_days: int
 
     class Config:
         env_file = ".env"

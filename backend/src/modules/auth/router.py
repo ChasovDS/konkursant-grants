@@ -1,8 +1,8 @@
 # src/modules/auth/router.py
 from fastapi import APIRouter, HTTPException, Depends, Response, Cookie
 from fastapi.responses import JSONResponse
-from src.modules.auth.auth import get_user_info, create_or_load_user_yandex, authenticate_user, create_user_profile
-from src.modules.auth.utils import create_jwt, hash_password, verify_password
+from src.modules.auth.auth import get_user_info, create_or_load_user_yandex, authenticate_user, create_user_profile, get_user_and_profile
+from src.modules.auth.utils import create_jwt, hash_password, verify_password, decode_refresh_token
 from src.modules.profile.schemas import JwtResponse
 from src.modules.auth.schemas import TokenData, UserResponse, RegistrationData, LoginData
 
@@ -81,3 +81,20 @@ async def register_user(data: RegistrationData):
 @router.post("/login")
 async def login_user(data: LoginData):
     return await authenticate_user(data)
+
+
+@router.post("/refresh")
+async def refresh_token(refresh_token: str):
+    """Обновляет access токен с использованием refresh токена."""
+    payload = decode_refresh_token(refresh_token)
+    user_id = payload.get("sub")
+
+    user, profile = await get_user_and_profile(user_id)
+    role = profile.get("role_name", RoleEnum.USER)
+
+    new_access_token = create_jwt(user_id, user["email_user_account"]["email_login"], role)
+
+    response = JSONResponse(content={"message": "Access token обновлен."})
+    set_auth_cookie(response, new_access_token)
+
+    return response

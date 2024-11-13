@@ -57,7 +57,8 @@ const Sign_in = () => {
 
     try {
       const response = await axios.post(`${API_URL}/login`, formData, { withCredentials: true });
-      console.log("Ответ от сервера:", response.data);
+      localStorage.setItem("refresh_token", response.data.refresh_token);
+      
       // Успешный вход
       setSuccess(true);
       setError(null);

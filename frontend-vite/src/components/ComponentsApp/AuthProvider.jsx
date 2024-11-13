@@ -6,7 +6,6 @@ import CryptoJS from "crypto-js";
 
 const AuthContext = React.createContext();
 const API_URL = import.meta.env.VITE_API_URL;
-const URL_AUTH = `${API_URL}/users/me?details=false&abbreviated=true`;
 const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY;
 
 const AuthProvider = ({ children }) => {
@@ -40,8 +39,20 @@ const AuthProvider = ({ children }) => {
   const signOut = useCallback(() => {
     Cookies.remove("userData");
     setSession({ user: null });
-    navigate("/");
+    navigate("/sign-in");
   }, [navigate]);
+
+  const refreshAccessToken = async () => {
+    const refreshToken = localStorage.getItem("refresh_token");
+    if (refreshToken) {
+      try {
+        await axios.post(`${API_URL}/refresh`, { refresh_token: refreshToken }, { withCredentials: true });
+      } catch (error) {
+        console.error("Ошибка при обновлении токена:", error);
+        signOut();
+      }
+    }
+  };
 
   const authentication = useMemo(
     () => ({
@@ -54,58 +65,48 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Получаем данные пользователя из cookies
-        const storedUserData = Cookies.get("userData");
+        // Выполняем запрос данных пользователя с сервера при первом монтировании
+            const userResponse = await axios.get(`${API_URL}/users/me?details=false&abbreviated=true`, {
+              withCredentials: true, 
+            });
 
-        // Если данные пользователя отсутствуют, запрашиваем их с сервера
-        if (!storedUserData) {
-          const userResponse = await axios.get(URL_AUTH, {
-            withCredentials: true, 
-          });
+        if (userResponse.data) {
+          const { full_name, external_service_accounts, role_name, user_id, avatar } = userResponse.data;
 
-          // Проверяем, получили ли мы данные пользователя
-          if (userResponse.data) {
-            const {
-              full_name,
-              external_service_accounts,
-              role_name,
-              user_id,
-              avatar,
-            } = userResponse.data;
+          const userData = {
+            name: full_name || "",
+            email: external_service_accounts?.yandex || "",
+            role_name: role_name || "",
+            user_id: user_id || "",
+            image: avatar || "https://sun9-65.userapi.com/impg/XOlcGkaH6lKLPZwtknYlJ1Y_ziFYzSiFxnJdVg/K6URQUELjyM.jpg?size=480x480&quality=95&sign=e7f9c1a9af554ed5b3c7daa73817c9fe&type=album",
+          };
 
-            // Создаем объект с данными пользователя
-            const userData = {
-              name: full_name || "",
-              email: external_service_accounts?.yandex || "",
-              role_name: role_name || "",
-              user_id: user_id || "",
-              image: avatar || "https://sun9-65.userapi.com/impg/XOlcGkaH6lKLPZwtknYlJ1Y_ziFYzSiFxnJdVg/K6URQUELjyM.jpg?size=480x480&quality=95&sign=e7f9c1a9af554ed5b3c7daa73817c9fe&type=album",
-            };
-
-            // Входим в систему с полученными данными
-            signIn(userData);
-          }
+          // Сохраняем данные в куку и устанавливаем в сессию
+          signIn(userData);
         } else {
-          // Если данные пользователя есть, расшифровываем их
-          const decryptedData = decryptData(storedUserData);
-          setSession({ user: decryptedData });
+          throw new Error("Данные пользователя не получены");
         }
       } catch (error) {
-        // Обработка ошибок
         setError(`Ошибка при получении данных пользователя: ${error.message}`);
         console.error("Ошибка при получении данных пользователя:", error);
 
-        // Если ошибка связана с отсутствием токена, перенаправляем на страницу входа
-        if (error.response && error.response.status === 401) {
-          setError("Токен аутентификации отсутствует. Пожалуйста, войдите в систему.");
-          navigate("/sign-in");
-        }
+        // Перенаправляем на страницу входа в случае ошибки
+        signOut();
       }
     };
 
-    // Вызываем функцию для получения данных пользователя
-    fetchUserData();
-  }, [signIn, navigate]); // Добавляем зависимости для useEffect
+    // Проверяем наличие данных пользователя в куках
+    const storedUserData = Cookies.get("userData");
+
+    if (storedUserData) {
+      // Если данные в куке есть, расшифровываем их и устанавливаем в сессию
+      const decryptedData = decryptData(storedUserData);
+      setSession({ user: decryptedData });
+    } else {
+      // Если данных нет, выполняем запрос к серверу
+      fetchUserData();
+    }
+  }, [signIn, navigate]);
 
   return (
     <AuthContext.Provider value={{ session, authentication, error }}>

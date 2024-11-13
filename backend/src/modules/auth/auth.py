@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 from src.database import authorization_accounts_collection, profile_data_collection, user_sessions_collection
 from src.modules.auth.schemas import SessionCreate, YandexUserAccount, AuthorizationAccounts, RegistrationData, LoginData, EmailUserAccount
 from src.modules.profile.schemas import ProfileData, RoleEnum, ExternalServiceAccounts, SquadInfo
-from src.modules.auth.utils import hash_password, verify_password, create_jwt
+from src.modules.auth.utils import hash_password, verify_password, create_jwt, create_refresh_token
 
 
 
@@ -183,45 +183,49 @@ async def create_user_profile(data: RegistrationData):
 
     return {"message": "Регистрация прошла успешно"}
 
+def set_auth_cookie(response: JSONResponse, jwt_token: str):
+    """Устанавливает куки с JWT токеном."""
+    expires = datetime.utcnow().replace(tzinfo=timezone.utc) + timedelta(days=7)
+    response.set_cookie(
+        key="auth_token",
+        value=jwt_token,
+        httponly=True,
+        secure=True,
+        samesite='Strict',  # ПРИ ДЕПЛОЕ ПОМЕНЯТЬ на Strict
+        expires=expires
+    )
 
-async def authenticate_user(data: LoginData):
-    # Ищем пользователя по email
+async def get_user_and_profile(email: str):
+    """Получает пользователя и его профиль по email."""
     user = await authorization_accounts_collection.find_one(
-        {"email_user_account.email_login": data.email}
+        {"email_user_account.email_login": email}
     )
     if not user:
         raise HTTPException(status_code=400, detail="Неверный email или пароль")
 
-    # Проверяем пароль
-    if not verify_password(data.password, user["email_user_account"]["hash_password"]):
-        raise HTTPException(status_code=400, detail="Неверный email или пароль")
-
-    # Извлекаем профиль пользователя
     profile = await profile_data_collection.find_one({"user_id": str(user["_id"])})
     if not profile:
         raise HTTPException(status_code=500, detail="Профиль пользователя не найден")
+
+    return user, profile
+
+async def authenticate_user(data: LoginData):
+    """Аутентификация пользователя."""
+    user, profile = await get_user_and_profile(data.email)
+
+    # Проверяем пароль
+    if not verify_password(data.password, user["email_user_account"]["hash_password"]):
+        raise HTTPException(status_code=400, detail="Неверный email или пароль")
 
     role = profile.get("role_name", RoleEnum.USER)
 
     # Создаем JWT токен
     user_id = str(user["_id"])
     jwt_token = create_jwt(user_id, data.email, role)
+    refresh_token = create_refresh_token(user_id)
 
     # Устанавливаем куки с JWT токеном
-    response = JSONResponse(content={"message": "Аутентификация прошла успешно."})
-
-    # Установка куки
-    expires = datetime.utcnow().replace(tzinfo=timezone.utc) + timedelta(days=7)
-
-
-    # ПРИ ДЕПЛОЕ ПОМЕНЯТЬ samesite на Strict
-    response.set_cookie(
-        key="auth_token",
-        value=jwt_token,
-        httponly=True,
-        secure=True,
-        samesite='None',
-        expires=expires
-    )
+    response = JSONResponse(content={"message": "Аутентификация прошла успешно.", "refresh_token": refresh_token})
+    set_auth_cookie(response, jwt_token)
 
     return response
