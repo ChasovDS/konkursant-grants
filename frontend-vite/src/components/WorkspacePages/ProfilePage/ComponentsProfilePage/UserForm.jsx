@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import {
   Card,
   CardHeader,
@@ -19,14 +19,14 @@ import {
   InputLabel,
   InputAdornment,
   useTheme,
-} from '@mui/material';
-import PersonIcon from '@mui/icons-material/Person';
-import PhoneIcon from '@mui/icons-material/Phone';
-import EditIcon from '@mui/icons-material/Edit';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import PeopleIcon from '@mui/icons-material/People';
+} from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
+import PhoneIcon from "@mui/icons-material/Phone";
+import EditIcon from "@mui/icons-material/Edit";
+import SaveIcon from "@mui/icons-material/Save";
+import CancelIcon from "@mui/icons-material/Cancel";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import PeopleIcon from "@mui/icons-material/People";
 
 const UserProfileEdit = ({
   userData,
@@ -51,8 +51,44 @@ const UserProfileEdit = ({
   useEffect(() => {
     const { first_name, last_name, middle_name } = formData;
     // Объединяем имена в одно поле full_name
-    formData.full_name = `${last_name || ''} ${first_name || ''} ${ middle_name || ''}`.trim();
+    formData.full_name =
+      `${last_name || ""} ${first_name || ""} ${middle_name || ""}`.trim();
   }, [formData.first_name, formData.last_name, formData.middle_name]);
+
+  // Обработчик изменения для форматирования телефона
+  const handlePhoneChange = (event) => {
+    let value = event.target.value.replace(/\D/g, ""); // Убираем все нецифровые символы
+
+    // Проверяем, начинается ли номер с 7
+    if (value.length === 0) {
+      value = "7"; // Если ничего не введено, добавляем 7
+    } else if (value.charAt(0) !== "7" && value.length < 11) {
+      value = "7" + value; // Добавляем 7, если номер не начинается с 7
+    }
+
+    // Ограничиваем длину номера до 11 цифр (включая 7)
+    if (value.length <= 11) {
+      const formattedValue = value.replace(
+        /(\d{1})(\d{3})(\d{3})(\d{4})/,
+        "+$1 ($2) $3-$4"
+      ); // Форматируем номер
+      onChange({ target: { name: event.target.name, value: formattedValue } });
+    }
+  };
+
+  // Добавляем обработчик для поля даты рождения
+  const handleBirthdayChange = (event) => {
+    const selectedDate = new Date(event.target.value);
+    const currentDate = new Date();
+
+    // Проверяем, что выбранная дата не превышает текущую
+    if (selectedDate <= currentDate) {
+      onChange(event);
+    } else {
+      // Можно добавить обработку ошибки, если дата неверная
+      console.error("Дата рождения не может быть больше текущей даты.");
+    }
+  };
 
   return (
     <Grid container spacing={3}>
@@ -63,25 +99,28 @@ const UserProfileEdit = ({
             avatar={
               <Avatar
                 alt="User Avatar"
-                src="https://lh3.googleusercontent.com/a/ACg8ocKz0rfKIZUR-mWFGz2q51MzC32lMLlApy8iW44d1hGC3X86Dbw=s360-c-no"
+                src="https://sun9-65.userapi.com/impg/XOlcGkaH6lKLPZwtknYlJ1Y_ziFYzSiFxnJdVg/K6URQUELjyM.jpg?size=480x480&quality=95&sign=e7f9c1a9af554ed5b3c7daa73817c9fe&type=album"
                 sx={{ width: 56, height: 56 }}
               />
             }
-            title={formData.full_name || 'ФИО'}
-            subheader={roleTranslations[formData.role_name] || 'Роль'} 
+            title={formData.full_name || "ФИО"}
+            subheader={roleTranslations[formData.role_name] || "Роль"}
           />
         </Card>
 
         {/* Карточка с полем для отряда и настройками приватности */}
         <Card sx={{ mt: 3, backgroundColor: theme.palette.background.paper }}>
           <CardContent>
-            <Typography variant="h6" sx={{ mb: 2 }}>Сообщество</Typography>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Сообщество
+            </Typography>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label="Отряд | Сообщество"
                   placeholder="Введите название отряда"
+                  inputProps={{ maxLength: 50 }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -89,7 +128,7 @@ const UserProfileEdit = ({
                       </InputAdornment>
                     ),
                   }}
-                  value={formData.squad_info?.squad || ''}
+                  value={formData.squad_info?.squad || ""}
                   name="squad_info.squad"
                   onChange={onChange}
                   disabled={!isEditing}
@@ -100,11 +139,25 @@ const UserProfileEdit = ({
             {/* Настройки приватности */}
             <CardContent sx={{ mb: -4 }}>
               <FormControl component="fieldset" disabled>
-                <FormLabel component="legend">Кто может просматривать Ваши проекты?</FormLabel>
+                <FormLabel component="legend">
+                  Кто может просматривать Ваши проекты?
+                </FormLabel>
                 <RadioGroup>
-                  <FormControlLabel value="onlyMe" control={<Radio />} label="Только я" />
-                  <FormControlLabel value="expertsOnly" control={<Radio />} label="Только эксперты" />
-                  <FormControlLabel value="everyone" control={<Radio />} label="Все" />
+                  <FormControlLabel
+                    value="onlyMe"
+                    control={<Radio />}
+                    label="Только я"
+                  />
+                  <FormControlLabel
+                    value="expertsOnly"
+                    control={<Radio />}
+                    label="Только эксперты"
+                  />
+                  <FormControlLabel
+                    value="everyone"
+                    control={<Radio />}
+                    label="Все"
+                  />
                 </RadioGroup>
               </FormControl>
             </CardContent>
@@ -115,13 +168,16 @@ const UserProfileEdit = ({
       <Grid item xs={12} md={8}>
         <Card sx={{ backgroundColor: theme.palette.background.paper }}>
           <CardContent>
-            <Typography variant="h6" sx={{ mb: 2 }}>Личная информация</Typography>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Личная информация
+            </Typography>
             <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={4}>
                 <TextField
                   fullWidth
                   label="Фамилия"
                   placeholder="Введите вашу фамилию"
+                  inputProps={{ maxLength: 50 }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -129,7 +185,7 @@ const UserProfileEdit = ({
                       </InputAdornment>
                     ),
                   }}
-                  value={formData.last_name || ''}
+                  value={formData.last_name || ""}
                   name="last_name"
                   onChange={onChange}
                   disabled={!isEditing}
@@ -140,6 +196,7 @@ const UserProfileEdit = ({
                   fullWidth
                   label="Имя"
                   placeholder="Введите ваше имя"
+                  inputProps={{ maxLength: 50 }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -147,7 +204,7 @@ const UserProfileEdit = ({
                       </InputAdornment>
                     ),
                   }}
-                  value={formData.first_name || ''}
+                  value={formData.first_name || ""}
                   name="first_name"
                   onChange={onChange}
                   disabled={!isEditing}
@@ -158,6 +215,7 @@ const UserProfileEdit = ({
                   fullWidth
                   label="Отчество"
                   placeholder="Введите ваше отчество"
+                  inputProps={{ maxLength: 50 }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -165,7 +223,7 @@ const UserProfileEdit = ({
                       </InputAdornment>
                     ),
                   }}
-                  value={formData.middle_name || ''}
+                  value={formData.middle_name || ""}
                   name="middle_name"
                   onChange={onChange}
                   disabled={!isEditing}
@@ -182,10 +240,11 @@ const UserProfileEdit = ({
                         <PhoneIcon />
                       </InputAdornment>
                     ),
+                    inputProps: { maxLength: 15 }, // Ограничение по символам для форматированного телефона
                   }}
-                  value={formData.phone || ''}
+                  value={formData.phone || ""}
                   name="phone"
-                  onChange={onChange}
+                  onChange={handlePhoneChange} // Используем новый обработчик
                   disabled={!isEditing}
                 />
               </Grid>
@@ -193,7 +252,7 @@ const UserProfileEdit = ({
                 <TextField
                   fullWidth
                   label="Дата рождения"
-                  type="date" 
+                  type="date"
                   placeholder="Введите вашу дату рождения"
                   InputProps={{
                     startAdornment: (
@@ -202,10 +261,13 @@ const UserProfileEdit = ({
                       </InputAdornment>
                     ),
                   }}
-                  value={formData.birthday || ''}
+                  value={formData.birthday || ""}
                   name="birthday"
-                  onChange={onChange}
+                  onChange={handleBirthdayChange}
                   disabled={!isEditing}
+                  inputProps={{
+                    max: new Date().toISOString().split("T")[0], 
+                  }}
                 />
               </Grid>
 
@@ -214,7 +276,7 @@ const UserProfileEdit = ({
                   <InputLabel id="gender-select-label">Пол</InputLabel>
                   <Select
                     labelId="gender-select-label"
-                    value={formData.gender || ''}
+                    value={formData.gender || ""}
                     name="gender"
                     onChange={onChange}
                     disabled={!isEditing}
@@ -230,9 +292,10 @@ const UserProfileEdit = ({
                   fullWidth
                   label="Информация"
                   placeholder="Введите информацию о себе"
+                  inputProps={{ maxLength: 550 }}
                   multiline
                   rows={4}
-                  value={formData.user_information || ''}
+                  value={formData.user_information || ""}
                   name="user_information"
                   onChange={onChange}
                   disabled={!isEditing}
@@ -243,7 +306,8 @@ const UserProfileEdit = ({
                   fullWidth
                   label="ВКонтакте"
                   placeholder="Ссылка на ВКонтакте"
-                  value={formData.external_service_accounts?.vk || ''}
+                  value={formData.external_service_accounts?.vk || ""}
+                  inputProps={{ maxLength: 50 }}
                   name="external_service_accounts.vk"
                   onChange={onChange}
                   disabled={!isEditing}
@@ -254,7 +318,8 @@ const UserProfileEdit = ({
                   fullWidth
                   label="Телеграм"
                   placeholder="Ссылка на Телеграм"
-                  value={formData.external_service_accounts?.telegram || ''}
+                  value={formData.external_service_accounts?.telegram || ""}
+                  inputProps={{ maxLength: 50 }}
                   name="external_service_accounts.telegram"
                   onChange={onChange}
                   disabled={!isEditing}
@@ -265,7 +330,8 @@ const UserProfileEdit = ({
                   fullWidth
                   label="Яндекс"
                   placeholder="Email Яндекс"
-                  value={formData.external_service_accounts?.yandex || ''}
+                  value={formData.external_service_accounts?.yandex || ""}
+                  inputProps={{ maxLength: 50 }}
                   name="external_service_accounts.yandex"
                   onChange={onChange}
                   disabled
@@ -275,18 +341,33 @@ const UserProfileEdit = ({
           </CardContent>
         </Card>
 
-        <CardActions sx={{ mt: 2, justifyContent: 'flex-end' }}>
+        <CardActions sx={{ mt: 2, justifyContent: "flex-end" }}>
           {isEditing ? (
             <>
-              <Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={onSave}>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<SaveIcon />}
+                onClick={onSave}
+              >
                 Сохранить информацию
               </Button>
-              <Button variant="outlined" color="secondary" startIcon={<CancelIcon />} onClick={onCancel}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                startIcon={<CancelIcon />}
+                onClick={onCancel}
+              >
                 Отменить изменения
               </Button>
             </>
           ) : (
-            <Button variant="contained" color="primary" startIcon={<EditIcon />} onClick={onEdit}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<EditIcon />}
+              onClick={onEdit}
+            >
               Редактировать данные
             </Button>
           )}

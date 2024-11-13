@@ -13,7 +13,7 @@ export default function NotFound() {
       <Typography variant="body1" gutterBottom>
         Извините, страница, которую вы ищете, не найдена.
       </Typography>
-      <Button variant="contained" color="primary" component={Link} to="/">
+      <Button variant="contained" color="primary" component={Link} to="/workspace">
         Перейти на главную
       </Button>
     </Container>

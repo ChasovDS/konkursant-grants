@@ -31,7 +31,7 @@ export default function Forbidden() {
             variant="contained" 
             color="secondary" 
             component={Link} 
-            to="/workspace/" 
+            to="/workspace" 
             style={{ marginTop: '1rem' }}
           >
             Вернуться на главную

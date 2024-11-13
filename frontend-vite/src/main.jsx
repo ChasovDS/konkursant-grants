@@ -41,6 +41,7 @@ import ProjectsList from './components/WorkspacePages/ReviewPage/SectionProject/
 import UserProfileAdmin from './components/WorkspacePages/AdminPage/ComponentsAdminPage/UserProfileAdmin'; 
 import EventDetailsPage from './components/WorkspacePages/EventPage/_EventDetailsPage'; 
 import ProjectDetails from './components/WorkspacePages/ProjectPage/ComponentsProjectDetails/_ProjectDetails'; 
+import ProjectDetailsReview from './components/WorkspacePages/ProjectPage/ComponentsProjectDetails/_ProjectDetails'; 
 
 
 
@@ -76,6 +77,7 @@ const router = createBrowserRouter([
           { path: 'profile/:userId', element: <UserProfileAdmin /> },
           { path: 'projects', element: <ProjectsPage /> },
           { path: 'projects/:projectId', element: <ProjectDetails /> },
+          { path: 'projects/review/:projectId', element: <ProjectDetailsReview /> },
           { path: 'events', element: <EventsPage /> },
           { path: 'events/:eventId', element: <EventDetailsPage /> },
           { path: 'events/edit/:eventId', element: <UpdateEventPage /> },

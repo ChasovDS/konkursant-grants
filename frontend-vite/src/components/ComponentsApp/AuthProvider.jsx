@@ -60,7 +60,7 @@ const AuthProvider = ({ children }) => {
         // Если данные пользователя отсутствуют, запрашиваем их с сервера
         if (!storedUserData) {
           const userResponse = await axios.get(URL_AUTH, {
-            withCredentials: true,
+            withCredentials: true, 
           });
 
           // Проверяем, получили ли мы данные пользователя
@@ -79,9 +79,7 @@ const AuthProvider = ({ children }) => {
               email: external_service_accounts?.yandex || "",
               role_name: role_name || "",
               user_id: user_id || "",
-              image:
-                avatar ||
-                "https://sun9-65.userapi.com/impg/XOlcGkaH6lKLPZwtknYlJ1Y_ziFYzSiFxnJdVg/K6URQUELjyM.jpg?size=480x480&quality=95&sign=e7f9c1a9af554ed5b3c7daa73817c9fe&type=album",
+              image: avatar || "https://sun9-65.userapi.com/impg/XOlcGkaH6lKLPZwtknYlJ1Y_ziFYzSiFxnJdVg/K6URQUELjyM.jpg?size=480x480&quality=95&sign=e7f9c1a9af554ed5b3c7daa73817c9fe&type=album",
             };
 
             // Входим в систему с полученными данными
@@ -99,9 +97,7 @@ const AuthProvider = ({ children }) => {
 
         // Если ошибка связана с отсутствием токена, перенаправляем на страницу входа
         if (error.response && error.response.status === 401) {
-          setError(
-            "Токен аутентификации отсутствует. Пожалуйста, войдите в систему."
-          );
+          setError("Токен аутентификации отсутствует. Пожалуйста, войдите в систему.");
           navigate("/sign-in");
         }
       }

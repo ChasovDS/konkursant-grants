@@ -120,6 +120,20 @@ const ProjectDetails = () => {
     }
   };
 
+
+  const handleBackClick = () => {
+    const isReviewPath = location.pathname.includes('review');
+    const assignedEventId = projectData?.assigned_event_id;
+
+    if (isReviewPath && assignedEventId) {
+      navigate(`/workspace/reviews/${assignedEventId}/projects`);
+    } else {
+      navigate('/workspace/projects');
+    }
+  };
+
+
+
   if (!projectData) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
@@ -131,7 +145,7 @@ const ProjectDetails = () => {
   return (
     <Box>
       <Breadcrumbs aria-label="breadcrumb" sx={{ marginBottom: 2 }}>
-        <MuiLink component={Link} to="/workspace/projects">НАЗАД</MuiLink>
+        <MuiLink component={Link} to="#" onClick={handleBackClick}>НАЗАД</MuiLink>
         <Typography color="text.primary" variant="h6">{projectData.project_name}</Typography>
       </Breadcrumbs>
 

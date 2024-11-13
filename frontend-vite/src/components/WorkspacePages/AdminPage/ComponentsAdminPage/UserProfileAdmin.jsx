@@ -78,9 +78,9 @@ const UserProfile = () => {
     <Box sx={{ mb: 2, display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 4 }}>
         <Typography color="text.primary" variant="h5" sx={{ textTransform: 'uppercase' }}>
-          Данные пользователя:  {userData ? `${userData.first_name} ${userData.last_name} ${userData.middle_name}` : 'недоступны'}
+          Данные пользователя:  {userData ? userData.full_name : 'недоступны'}
         </Typography>
-        <Button component={Link} to="/workspace/admin-page/users" variant="outlined" color="primary">
+        <Button component={Link} to="/workspace/admin-page/" variant="outlined" color="primary">
           Назад
         </Button>
       </Box>

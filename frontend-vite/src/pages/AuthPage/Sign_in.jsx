@@ -1,6 +1,6 @@
 // src/pages/AuthPage/Sign_in.jsx
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Typography,
@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Cookies from 'js-cookie'; // Импортируем библиотеку js-cookie
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -25,6 +26,14 @@ const Sign_in = () => {
   const [success, setSuccess] = useState(false); // Для успешного уведомления
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const navigate = useNavigate();
+
+  // Проверяем наличие куки userData при монтировании компонента
+  useEffect(() => {
+    if (Cookies.get("userData")) {
+      // Если куки существует, перенаправляем на /workspace
+      navigate("/workspace");
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -49,7 +58,6 @@ const Sign_in = () => {
     try {
       const response = await axios.post(`${API_URL}/login`, formData, { withCredentials: true });
       console.log("Ответ от сервера:", response.data);
-      // localStorage.setItem('auth_token', response.data.token);
       // Успешный вход
       setSuccess(true);
       setError(null);

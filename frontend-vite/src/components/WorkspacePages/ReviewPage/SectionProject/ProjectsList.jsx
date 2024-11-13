@@ -78,7 +78,7 @@ const ProjectsList = () => {
   ]);
 
   const handleViewProject = (projectId) => {
-    navigate(`/workspace/projects/${projectId}`);
+    navigate(`/workspace/projects/review/${projectId}`);
   };
 
   const handleChangePage = (event, value) => {

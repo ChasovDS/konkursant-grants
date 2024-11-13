@@ -213,12 +213,14 @@ async def authenticate_user(data: LoginData):
     # Установка куки
     expires = datetime.utcnow().replace(tzinfo=timezone.utc) + timedelta(days=7)
 
+
+    # ПРИ ДЕПЛОЕ ПОМЕНЯТЬ samesite на Strict
     response.set_cookie(
         key="auth_token",
         value=jwt_token,
         httponly=True,
         secure=True,
-        samesite='Strict',
+        samesite='None',
         expires=expires
     )
 
