@@ -3,7 +3,7 @@ import httpx
 from fastapi import HTTPException, Response
 from fastapi.responses import JSONResponse
 from bson import ObjectId
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from src.database import authorization_accounts_collection, profile_data_collection, user_sessions_collection
 from src.modules.auth.schemas import SessionCreate, YandexUserAccount, AuthorizationAccounts, RegistrationData, LoginData, EmailUserAccount
@@ -211,7 +211,7 @@ async def authenticate_user(data: LoginData):
     response = JSONResponse(content={"message": "Аутентификация прошла успешно."})
 
     # Установка куки
-    expires = datetime.utcnow() + timedelta(days=7)
+    expires = datetime.utcnow().replace(tzinfo=timezone.utc) + timedelta(days=7)
 
     response.set_cookie(
         key="auth_token",
@@ -223,4 +223,3 @@ async def authenticate_user(data: LoginData):
     )
 
     return response
-
