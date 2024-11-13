@@ -54,47 +54,62 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        // Получаем данные пользователя из cookies
         const storedUserData = Cookies.get("userData");
+
+        // Если данные пользователя отсутствуют, запрашиваем их с сервера
         if (!storedUserData) {
-          // Если userData отсутствует, перенаправляем на страницу входа
-          setError("Данные пользователя отсутствуют. Пожалуйста, войдите в систему.");
-          navigate("/sign-in");
-          return;
-        }
+          const userResponse = await axios.get(URL_AUTH, {
+            withCredentials: true,
+          });
 
-        const decryptedData = decryptData(storedUserData);
-        setSession({ user: decryptedData });
+          // Проверяем, получили ли мы данные пользователя
+          if (userResponse.data) {
+            const {
+              full_name,
+              external_service_accounts,
+              role_name,
+              user_id,
+              avatar,
+            } = userResponse.data;
 
-        // Здесь вы можете отправить запрос на сервер, если вам нужно обновить данные пользователя
-        const userResponse = await axios.get(URL_AUTH, {
-          withCredentials: true, // Убедитесь, что куки отправляются
-        });
+            // Создаем объект с данными пользователя
+            const userData = {
+              name: full_name || "",
+              email: external_service_accounts?.yandex || "",
+              role_name: role_name || "",
+              user_id: user_id || "",
+              image:
+                avatar ||
+                "https://sun9-65.userapi.com/impg/XOlcGkaH6lKLPZwtknYlJ1Y_ziFYzSiFxnJdVg/K6URQUELjyM.jpg?size=480x480&quality=95&sign=e7f9c1a9af554ed5b3c7daa73817c9fe&type=album",
+            };
 
-        if (userResponse.data) {
-          const {
-            full_name,
-            external_service_accounts,
-            role_name,
-            user_id,
-            avatar,
-          } = userResponse.data;
-          const userData = {
-            name: full_name || "",
-            email: external_service_accounts?.yandex || "",
-            role_name: role_name || "",
-            user_id: user_id || "",
-            image: avatar || "https://sun9-65.userapi.com/impg/XOlcGkaH6lKLPZwtknYlJ1Y_ziFYzSiFxnJdVg/K6URQUELjyM.jpg?size=480x480&quality=95&sign=e7f9c1a9af554ed5b3c7daa73817c9fe&type=album",
-          };
-          setSession({ user: userData });
+            // Входим в систему с полученными данными
+            signIn(userData);
+          }
+        } else {
+          // Если данные пользователя есть, расшифровываем их
+          const decryptedData = decryptData(storedUserData);
+          setSession({ user: decryptedData });
         }
       } catch (error) {
+        // Обработка ошибок
         setError(`Ошибка при получении данных пользователя: ${error.message}`);
         console.error("Ошибка при получении данных пользователя:", error);
+
+        // Если ошибка связана с отсутствием токена, перенаправляем на страницу входа
+        if (error.response && error.response.status === 401) {
+          setError(
+            "Токен аутентификации отсутствует. Пожалуйста, войдите в систему."
+          );
+          navigate("/sign-in");
+        }
       }
     };
 
+    // Вызываем функцию для получения данных пользователя
     fetchUserData();
-  }, [navigate]);
+  }, [signIn, navigate]); // Добавляем зависимости для useEffect
 
   return (
     <AuthContext.Provider value={{ session, authentication, error }}>
