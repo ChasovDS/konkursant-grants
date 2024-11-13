@@ -59,16 +59,16 @@ const Sign_in = () => {
 
       //////////////////////////////////////
         /// DEV ONLY
-        const authToken = response.headers["auth_token"]; // Получаем токен из заголовка ответа
-
-        if (authToken) {
-          Cookies.set("auth_token", authToken, {
-            expires: 7, // Кука будет действительна 7 дней
-            secure: true, // Кука будет передаваться только по HTTPS
-            sameSite: "None", // Ограничивает отправку куки с запросами из других сайтов
-            path: "/", // Кука доступна на всем сайте
-          });
-        }
+    //    const authToken = response.headers["auth_token"]; // Получаем токен из заголовка ответа
+//
+  //      if (authToken) {
+         // Cookies.set("auth_token", authToken, {
+           // expires: 7, // Кука будет действительна 7 дней
+           // secure: true, // Кука будет передаваться только по HTTPS
+          //  sameSite: "None", // Ограничивает отправку куки с запросами из других сайтов
+         //   path: "/", // Кука доступна на всем сайте
+       //   });
+      //  }
         /// DEV ONLY
       //////////////////////////////////////
 
