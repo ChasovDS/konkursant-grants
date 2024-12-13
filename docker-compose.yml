@@ -36,8 +36,8 @@ services:
     image: mongo:latest  # Используем образ MongoDB
     container_name: mongodb
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin  # Укажите имя пользователя
-      MONGO_INITDB_ROOT_PASSWORD: password  # Укажите пароль
+      MONGO_INITDB_ROOT_USERNAME: admin  # Заглушка для логина (при релизе заменю)
+      MONGO_INITDB_ROOT_PASSWORD: password  # Заглушка для паролф (при релизе заменю)
     ports:
       - "27017:27017"  # Проброс порта для доступа к MongoDB
     volumes:
