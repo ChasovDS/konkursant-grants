@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
 import CryptoJS from "crypto-js";
+import { Snackbar, Alert } from "@mui/material";
 
 const AuthContext = React.createContext();
 const API_URL = import.meta.env.VITE_API_URL;
@@ -12,12 +13,10 @@ const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const [session, setSession] = useState({ user: null });
   const [error, setError] = useState(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   const encryptData = (data) => {
-    return CryptoJS.AES.encrypt(
-      JSON.stringify(data),
-      ENCRYPTION_KEY
-    ).toString();
+    return CryptoJS.AES.encrypt(JSON.stringify(data), ENCRYPTION_KEY).toString();
   };
 
   const decryptData = (ciphertext) => {
@@ -54,63 +53,66 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const authentication = useMemo(
-    () => ({
-      signIn,
-      signOut,
-    }),
-    [signIn, signOut]
-  );
+  const fetchUserData = async () => {
+    try {
+      const userResponse = await axios.get(`${API_URL}/users/me?details=false&abbreviated=true`, {
+        withCredentials: true,
+      });
+
+      if (userResponse.data) {
+        const userData = {
+          name: userResponse.data.full_name || "",
+          email: userResponse.data.external_service_accounts?.yandex || "",
+          role_name: userResponse.data.role_name || "",
+          user_id: userResponse.data.user_id || "",
+          image: userResponse.data.avatar || "https://sun9-65.userapi.com/impg/XOlcGkaH6lKLPZwtknYlJ1Y_ziFYzSiFxnJdVg/K6URQUELjyM.jpg?size=480x480&quality=95&sign=e7f9c1a9af554ed5b3c7daa73817c9fe&type=album",
+        };
+        signIn(userData);
+      } else {
+        throw new Error("Данные пользователя не получены");
+      }
+    } catch (error) {
+      setError(`Ошибка при получении данных пользователя: ${error.message}`);
+      console.error("Ошибка при получении данных пользователя:", error);
+      setSnackbarOpen(true); // Открываем Snackbar при ошибке
+      signOut();
+    }
+  };
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        // Выполняем запрос данных пользователя с сервера при первом монтировании
-            const userResponse = await axios.get(`${API_URL}/users/me?details=false&abbreviated=true`, {
-              withCredentials: true, 
-            });
-
-        if (userResponse.data) {
-          const { full_name, external_service_accounts, role_name, user_id, avatar } = userResponse.data;
-
-          const userData = {
-            name: full_name || "",
-            email: external_service_accounts?.yandex || "",
-            role_name: role_name || "",
-            user_id: user_id || "",
-            image: avatar || "https://sun9-65.userapi.com/impg/XOlcGkaH6lKLPZwtknYlJ1Y_ziFYzSiFxnJdVg/K6URQUELjyM.jpg?size=480x480&quality=95&sign=e7f9c1a9af554ed5b3c7daa73817c9fe&type=album",
-          };
-
-          // Сохраняем данные в куку и устанавливаем в сессию
-          signIn(userData);
-        } else {
-          throw new Error("Данные пользователя не получены");
-        }
-      } catch (error) {
-        setError(`Ошибка при получении данных пользователя: ${error.message}`);
-        console.error("Ошибка при получении данных пользователя:", error);
-
-        // Перенаправляем на страницу входа в случае ошибки
-        signOut();
-      }
-    };
-
-    // Проверяем наличие данных пользователя в куках
     const storedUserData = Cookies.get("userData");
 
     if (storedUserData) {
-      // Если данные в куке есть, расшифровываем их и устанавливаем в сессию
       const decryptedData = decryptData(storedUserData);
       setSession({ user: decryptedData });
     } else {
-      // Если данных нет, выполняем запрос к серверу
       fetchUserData();
     }
-  }, [signIn, navigate]);
+  }, [signIn]);
+
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+    setError(null); // Сбрасываем ошибку при закрытии Snackbar
+  };
+
+  const authentication = useMemo(() => ({
+    signIn,
+    signOut,
+  }), [signIn, signOut]);
 
   return (
     <AuthContext.Provider value={{ session, authentication, error }}>
       {children}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
     </AuthContext.Provider>
   );
 };

@@ -9,7 +9,6 @@ class Settings(BaseSettings):
     jwt_expiration: int = 604800  # Время жизни токена в секундах (7 дней)
     encryption_key: str
     mongodb_url: str
-    mongodb_url_dev: str
     access_token_expire_minutes: int
     refresh_token_expire_days: int
 

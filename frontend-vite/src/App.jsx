@@ -1,57 +1,57 @@
 // src/App.jsx
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useMemo } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { AppProvider } from "@toolpad/core/react-router-dom";
 import { CircularProgress } from "@mui/material";
 import { NAVIGATION, BRANDING } from './components/ComponentsApp/Navigation';
 import { AuthProvider, AuthContext } from './components/ComponentsApp/AuthProvider';
 
-export default function App() {
-  return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
-  );
-}
+const LOADING_TIMEOUT = 5000; // Время ожидания в миллисекундах
 
 function MainApp() {
   const { session } = useContext(AuthContext);
+  const { authentication } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!session || !session.user) {
+    if (!session || !session.user) {
+      const timer = setTimeout(() => {
         navigate('/forbidden');
-      }
-    }, 5000); // 5 секунд
+      }, LOADING_TIMEOUT);
 
-    if (session && session.user) {
+      return () => clearTimeout(timer);
+    } else {
       setLoading(false);
     }
-
-    return () => clearTimeout(timer);
   }, [session, navigate]);
+
+  // Перемещение вычисления navigation вне условия
+  const userRole = session?.user?.role_name || 'user'; // Значение по умолчанию
+  const navigation = useMemo(() => NAVIGATION[userRole], [userRole]);
 
   if (loading) {
     return <CircularProgress />;
   }
 
-  const userRole = session.user.role_name;
-  const navigation = NAVIGATION[userRole] || NAVIGATION.user;
-
   return (
-    <AuthContext.Consumer>
-      {({ session, authentication }) => (
-        <AppProvider
-          navigation={navigation}
-          branding={BRANDING}
-          session={session}
-          authentication={authentication}
-        >
-          <Outlet />
-        </AppProvider>
-      )}
-    </AuthContext.Consumer>
+    <AppProvider
+      navigation={navigation}
+      branding={BRANDING}
+      session={session}
+      authentication={authentication} 
+    >
+
+      
+      <Outlet />
+    </AppProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
   );
 }
